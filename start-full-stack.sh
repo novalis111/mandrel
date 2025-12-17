@@ -1,8 +1,17 @@
 #!/bin/bash
 
-# AIDIS Full Stack Startup Script
+# Mandrel Full Stack Startup Script
 # Ensures clean startup of both MCP server and Command interface
 # Supports configurable Frontend (default 3000) and Backend (default 3001) ports
+#
+# CODE CHANGES:
+# - Frontend (React): Hot reload via react-scripts, changes appear instantly
+# - Backend (Node/Express): Hot reload via nodemon, restarts on file save
+# - Run this script to do a clean full restart if needed
+#
+# USAGE:
+#   ./start-full-stack.sh                              # Use ports from .env.development
+#   ./start-full-stack.sh --frontend-port 4000 --backend-port 4001  # Custom ports
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
@@ -47,17 +56,36 @@ echo -e "${BLUE}🚀 Starting AIDIS Full Stack...${NC}"
 
 # Step 1: Clean shutdown of any existing processes
 echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
-if [ -f "./kill-all-aidis.sh" ]; then
-    ./kill-all-aidis.sh
-    sleep 2
-else
-    echo "⚠️  kill-all-aidis.sh not found, manual cleanup..."
-    pkill -f "aidis" 2>/dev/null || true
-    pkill -f "tsx.*server" 2>/dev/null || true
-    pkill -f "nodemon" 2>/dev/null || true
-    pkill -f "ts-node" 2>/dev/null || true
-    sleep 2
+
+# Kill all Node.js processes including MCP server and dev servers
+echo -e "${YELLOW}   Stopping Node.js services...${NC}"
+pkill -9 -f "tsx.*src/main.ts" 2>/dev/null || true
+pkill -9 -f "node.*server" 2>/dev/null || true
+pkill -9 -f "nodemon" 2>/dev/null || true
+pkill -9 -f "ts-node" 2>/dev/null || true
+pkill -9 -f "concurrently" 2>/dev/null || true
+pkill -9 -f "react-scripts" 2>/dev/null || true
+
+# Kill old npm/node processes (including dev:full)
+pkill -9 -f "npm run" 2>/dev/null || true
+pkill -9 -f "npm start" 2>/dev/null || true
+
+# Kill any mandrel/aidis processes
+pkill -f "mandrel" 2>/dev/null || true
+pkill -f "aidis" 2>/dev/null || true
+
+# Wait for processes to fully terminate
+echo -e "${YELLOW}   Waiting for processes to terminate...${NC}"
+sleep 2
+
+# Verify processes are dead
+if pgrep -f "node" > /dev/null; then
+    echo -e "${YELLOW}   Force killing remaining Node processes...${NC}"
+    pkill -9 node 2>/dev/null || true
+    sleep 1
 fi
+
+echo -e "${GREEN}   ✓ All processes cleaned${NC}"
 
 # Step 2: Start Mandrel MCP Server (core system)
 echo -e "${GREEN}🔧 Starting Mandrel MCP Server...${NC}"
