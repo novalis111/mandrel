@@ -120,17 +120,21 @@ class MonitoringService {
 
   // TR015-4: Service initialization based on TR014-4 boundaries
   private initializeServices() {
+    // Use configurable ports from environment, defaults to standard dev ports
+    const frontendPort = parseInt(process.env.FRONTEND_PORT || '3000');
+    const backendPort = parseInt(process.env.BACKEND_PORT || '3001');
+
     const coreServices = [
       {
         name: 'Frontend Dev Server',
-        port: 3000,
-        url: 'http://localhost:3000',
+        port: frontendPort,
+        url: `http://localhost:${frontendPort}`,
         slaTarget: 100 // 100ms per TR014-4
       },
       {
         name: 'Command Backend API',
-        port: 5000,
-        url: 'http://localhost:5000/api/health',
+        port: backendPort,
+        url: `http://localhost:${backendPort}/api/health`,
         slaTarget: 200 // 200ms per TR014-4
       },
       {

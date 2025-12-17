@@ -76,7 +76,7 @@ class HttpMcpBridge {
     });
 
     // 404 handler
-    this.app.all('*', (req, res) => {
+    this.app.use((req, res) => {
       res.status(404).json({
         success: false,
         error: `Endpoint ${req.method} ${req.path} not found`,

@@ -2,9 +2,31 @@
 
 # AIDIS Full Stack Startup Script
 # Ensures clean startup of both MCP server and Command interface
+# Supports configurable Frontend (default 3000) and Backend (default 3001) ports
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+
+# Port Configuration (can be overridden via environment or arguments)
+FRONTEND_PORT=${FRONTEND_PORT:-3000}
+BACKEND_PORT=${BACKEND_PORT:-3001}
+
+# Parse command line arguments for ports
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --frontend-port)
+      FRONTEND_PORT="$2"
+      shift 2
+      ;;
+    --backend-port)
+      BACKEND_PORT="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 # Colors
 RED='\033[0;31m'
@@ -49,19 +71,21 @@ done
 
 # Step 3: Start AIDIS Command (admin interface)
 echo -e "${GREEN}🎛️  Starting AIDIS Command Interface...${NC}"
-cd aidis-command
+cd mandrel-command
 
-# Start in background and capture PID
-nohup npm run dev:full > ../logs/aidis-command.log 2>&1 &
+# Start in background and capture PID with port configuration
+nohup env FRONTEND_PORT=$FRONTEND_PORT BACKEND_PORT=$BACKEND_PORT npm run dev:full > ../logs/mandrel-command.log 2>&1 &
 COMMAND_PID=$!
-echo $COMMAND_PID > ../run/aidis-command.pid
+echo $COMMAND_PID > ../run/mandrel-command.pid
 
-echo -e "${GREEN}✅ AIDIS Command started (PID: $COMMAND_PID)${NC}"
+echo -e "${GREEN}✅ Mandrel Command started (PID: $COMMAND_PID)${NC}"
+echo -e "${YELLOW}   Frontend: http://localhost:$FRONTEND_PORT${NC}"
+echo -e "${YELLOW}   Backend:  http://localhost:$BACKEND_PORT${NC}"
 
 # Step 4: Wait for Command interface to be ready
 echo -e "${YELLOW}⏳ Waiting for Command interface...${NC}"
 for i in {1..60}; do
-    if curl -s http://localhost:3000 > /dev/null 2>&1; then
+    if curl -s http://localhost:$FRONTEND_PORT > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Command interface is ready!${NC}"
         break
     fi
@@ -70,15 +94,17 @@ done
 
 # Step 5: Display status
 echo ""
-echo -e "${BLUE}🎯 AIDIS Full Stack Status:${NC}"
-echo -e "   ${GREEN}🔧 MCP Server:${NC}     http://localhost:8080/health"
-echo -e "   ${GREEN}🎛️  Command Backend:${NC} http://localhost:5000/api/health"
-echo -e "   ${GREEN}🌐 Command Frontend:${NC} http://localhost:3000"
+echo -e "${BLUE}🎯 Mandrel Full Stack Status:${NC}"
+echo -e "   ${GREEN}🔧 MCP Server:${NC}           http://localhost:8080/health"
+echo -e "   ${GREEN}🎛️  Command Backend API:${NC}  http://localhost:$BACKEND_PORT/api/health"
+echo -e "   ${GREEN}🌐 Command Frontend:${NC}     http://localhost:$FRONTEND_PORT"
 echo ""
 echo -e "${YELLOW}📋 Logs:${NC}"
-echo -e "   MCP Server:    tail -f logs/aidis.log"
-echo -e "   Command UI:    tail -f logs/aidis-command.log"
+echo -e "   MCP Server:    tail -f logs/mandrel.log"
+echo -e "   Command UI:    tail -f logs/mandrel-command.log"
 echo ""
 echo -e "${YELLOW}🛑 Stop Everything:${NC} ./stop-full-stack.sh"
 echo ""
-echo -e "${GREEN}🚀 Full stack is ready!${NC}"
+echo -e "${GREEN}✅ Mandrel Full Stack is running!${NC}"
+echo -e "${YELLOW}   Access at: http://localhost:$FRONTEND_PORT${NC}"
+echo ""

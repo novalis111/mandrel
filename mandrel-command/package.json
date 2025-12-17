@@ -4,8 +4,8 @@
   "description": "Mandrel Command - Database viewer and admin tool",
   "private": true,
   "scripts": {
-    "dev:frontend": "cd frontend && npm start",
-    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && PORT=${FRONTEND_PORT:-3000} npm start",
+    "dev:backend": "cd backend && PORT=${BACKEND_PORT:-3001} npm run dev",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build": "npm run build:shared && npm run build:backend && npm run build:frontend",
     "build:shared": "cd shared && npm run build",

@@ -52,9 +52,13 @@ try {
   }
 }
 
+// Determine default ports from environment or use standard defaults
+const defaultBackendPort = parseInt(process.env.BACKEND_PORT || process.env.PORT || '3001');
+const defaultFrontendPort = parseInt(process.env.FRONTEND_PORT || '3000');
+
 export const config = {
   // Server configuration
-  port: parseInt(process.env.MANDREL_HTTP_PORT || process.env.PORT || '5000'),
+  port: defaultBackendPort,
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // Database configuration
@@ -86,9 +90,9 @@ export const config = {
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12'),
   },
 
-  // CORS configuration
+  // CORS configuration - supports configurable ports
   cors: {
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:3000,http://localhost:3001').split(','),
+    origin: (process.env.CORS_ORIGIN || `http://localhost:${defaultFrontendPort},http://localhost:${defaultBackendPort}`).split(','),
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID', 'X-Project-ID'],
   },
