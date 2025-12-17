@@ -74,7 +74,7 @@ monitor_processes() {
     # Check Frontend Dev Server (Port 3000)
     local frontend_pid=$(get_process_pid "react-scripts/scripts/start.js")
     if [[ -n "$frontend_pid" ]]; then
-        if health_check "Frontend Dev" "http://localhost:3000" 200; then
+        if health_check "Frontend Dev" "http://localhost:3001" 200; then
             log "✅ Frontend Dev Server (PID: $frontend_pid) - Healthy"
         else
             log "⚠️  Frontend Dev Server (PID: $frontend_pid) - Health check failed"
@@ -178,7 +178,7 @@ generate_summary() {
 
     health_check "AIDIS MCP" "http://localhost:8080/health" && ((services_up++))
     health_check "Backend API" "http://localhost:5000/api/health" && ((services_up++))
-    health_check "Frontend" "http://localhost:3000" && ((services_up++))
+    health_check "Frontend" "http://localhost:3001" && ((services_up++))
 
     log "🌐 Service Availability: $services_up/$services_total"
 

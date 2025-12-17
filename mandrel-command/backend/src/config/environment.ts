@@ -53,8 +53,8 @@ try {
 }
 
 // Determine default ports from environment or use standard defaults
-const defaultBackendPort = parseInt(process.env.BACKEND_PORT || process.env.PORT || '3002');
-const defaultFrontendPort = parseInt(process.env.FRONTEND_PORT || '3001');
+const defaultBackendPort = parseInt(process.env.BACKEND_PORT || process.env.PORT || '3001');
+const defaultFrontendPort = parseInt(process.env.FRONTEND_PORT || '3000');
 
 export const config = {
   // Server configuration

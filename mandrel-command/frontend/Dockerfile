@@ -47,7 +47,7 @@ COPY --from=builder /app/build /usr/share/nginx/html
 
 # Create optimized nginx configuration
 RUN echo 'server {
-    listen 3000;
+    listen 3001;
     server_name localhost;
 
     # Enable compression
@@ -90,7 +90,7 @@ RUN echo 'server {
 
     # API proxy with optimizations
     location /api {
-        proxy_pass http://aidis-command-backend:3001;
+        proxy_pass http://aidis-command-backend:3002;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection upgrade;
@@ -131,11 +131,11 @@ RUN addgroup -g 1001 -S aidis && \
 USER aidis
 
 # Expose frontend port
-EXPOSE 3000
+EXPOSE 3001
 
 # Optimized health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+    CMD wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1
 
 # Start nginx with optimized worker processes
 CMD ["nginx", "-g", "daemon off; worker_processes auto;"]

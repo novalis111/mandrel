@@ -2,13 +2,10 @@
   "mcpServers": {
     "mandrel": {
       "type": "stdio",
-      "command": "/home/ridgetop/.nvm/versions/node/v22.18.0/bin/node",
-      "args": [
-        "claude-http-mcp-bridge.js"
-      ],
-      "cwd": "/home/ridgetop/aidis",
+      "command": "/home/ingo/.nvm/versions/node/v20.19.6/bin/node",
+      "args": ["scripts/start-http-mcp-bridge.js"],
+      "cwd": "/home/ingo/daten/Projekte/spielwiese/mandrel",
       "env": {
-        "PATH": "/home/ridgetop/.nvm/versions/node/v22.18.0/bin:/usr/local/bin:/usr/bin:/bin",
         "MANDREL_HTTP_URL": "http://localhost:8080"
       }
     }

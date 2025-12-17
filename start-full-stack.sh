@@ -7,9 +7,17 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Port Configuration (can be overridden via environment or arguments)
-FRONTEND_PORT=${FRONTEND_PORT:-3001}
-BACKEND_PORT=${BACKEND_PORT:-3002}
+# Port Configuration - load from .env.development or use defaults
+# Try to load from .env.development first, then fall back to defaults
+if [ -f "mandrel-command/.env.development" ]; then
+    FRONTEND_PORT=$(grep "^FRONTEND_PORT=" mandrel-command/.env.development | cut -d'=' -f2)
+    BACKEND_PORT=$(grep "^BACKEND_PORT=" mandrel-command/.env.development | cut -d'=' -f2)
+    echo -e "${BLUE}📄 Loaded ports from .env.development${NC}"
+fi
+
+# Use defaults if not set
+FRONTEND_PORT=${FRONTEND_PORT:-3000}
+BACKEND_PORT=${BACKEND_PORT:-3001}
 
 # Parse command line arguments for ports
 while [[ $# -gt 0 ]]; do

@@ -29,7 +29,7 @@ export class HttpMcpBridge {
 
   private setupMiddleware(): void {
     this.app.use(cors({
-      origin: ['http://localhost:3001', 'http://localhost:5001'],
+      origin: ['http://localhost:3002', 'http://localhost:5001'],
       credentials: true
     }));
     this.app.use(express.json({ limit: '10mb' }));

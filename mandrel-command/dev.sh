@@ -6,8 +6,8 @@
 set -e
 
 # Parse arguments for custom ports
-FRONTEND_PORT=${FRONTEND_PORT:-3001}
-BACKEND_PORT=${BACKEND_PORT:-3002}
+FRONTEND_PORT=${FRONTEND_PORT:-3000}
+BACKEND_PORT=${BACKEND_PORT:-3001}
 SKIP_BANNER=${SKIP_BANNER:-false}
 
 # Function to print banner
@@ -48,8 +48,8 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: ./dev.sh [OPTIONS]"
       echo ""
       echo "Options:"
-      echo "  --frontend-port PORT    Frontend port (default: 3001)"
-      echo "  --backend-port PORT     Backend port (default: 3002)"
+      echo "  --frontend-port PORT    Frontend port (default: 3000)"
+      echo "  --backend-port PORT     Backend port (default: 3001)"
       echo "  --skip-banner           Don't print startup banner"
       echo ""
       exit 1

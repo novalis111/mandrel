@@ -48,7 +48,7 @@ export class ServiceMeshClient extends EventEmitter {
 
     this.registerService({
       name: 'command-backend',
-      url: 'http://aidis-command-backend:3001',
+      url: 'http://aidis-command-backend:3002',
       healthCheck: '/health',
       timeout: 5000,
       retries: 3,

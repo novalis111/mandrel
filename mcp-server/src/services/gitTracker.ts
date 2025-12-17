@@ -267,11 +267,6 @@ export class GitTracker {
       // Get project root directory
       const sessionQuery = `
         SELECT p.root_directory, p.metadata->>'git_repo_path' as git_path
-        FROM user_sessions us
-        JOIN projects p ON us.project_id = p.id
-        WHERE us.id = $1
-        UNION ALL
-        SELECT p.root_directory, p.metadata->>'git_repo_path' as git_path
         FROM sessions s
         JOIN projects p ON s.project_id = p.id
         WHERE s.id = $1
