@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
+import http from 'http';
 
 import config from './config/environment';
 import { logger, morganLogStream } from './config/logger';
@@ -45,7 +46,7 @@ app.use(cors(config.cors));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Correlation ID middleware (must be first)
 app.use(correlationMiddleware);
@@ -120,7 +121,10 @@ async function startServer(): Promise<void> {
     const assignedPort = await portManager.assignPort(serviceName, config.port);
 
     // Start HTTP server with dynamic port assignment
-    const server = app.listen(assignedPort, async () => {
+    // Create server with increased header size limits for large cookies/tokens
+    const server = http.createServer({ maxHeaderSize: 16384 }, app);
+    
+    server.listen(assignedPort, async () => {
       const actualPort = (server.address() as any)?.port || assignedPort;
 
       // Register the service with its actual port
