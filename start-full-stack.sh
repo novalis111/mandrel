@@ -51,9 +51,9 @@ else
     sleep 2
 fi
 
-# Step 2: Start AIDIS MCP Server (core system)
-echo -e "${GREEN}🔧 Starting AIDIS MCP Server...${NC}"
-./start-aidis.sh
+# Step 2: Start Mandrel MCP Server (core system)
+echo -e "${GREEN}🔧 Starting Mandrel MCP Server...${NC}"
+./start-mandrel.sh
 
 # Wait for MCP server to be ready
 echo -e "${YELLOW}⏳ Waiting for MCP server to be ready...${NC}"
