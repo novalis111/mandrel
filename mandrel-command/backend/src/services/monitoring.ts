@@ -121,8 +121,8 @@ class MonitoringService {
   // TR015-4: Service initialization based on TR014-4 boundaries
   private initializeServices() {
     // Use configurable ports from environment, defaults to standard dev ports
-    const frontendPort = parseInt(process.env.FRONTEND_PORT || '3000');
-    const backendPort = parseInt(process.env.BACKEND_PORT || '3001');
+    const frontendPort = parseInt(process.env.FRONTEND_PORT || '3001');
+    const backendPort = parseInt(process.env.BACKEND_PORT || '3002');
 
     const coreServices = [
       {
