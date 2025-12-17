@@ -31,7 +31,7 @@ export function startSse(options: SseOptions): SseHandle {
   if (projectId) params.set('projectId', projectId);
   if (entities?.length) params.set('entities', entities.join(','));
 
-  const apiBase = process.env.REACT_APP_API_URL?.replace('/api', '') || 'http://localhost:5000';
+  const apiBase = process.env.REACT_APP_API_URL?.replace('/api', '') || '';
   const url = `${apiBase}/api/events?${params.toString()}`;
 
   console.log('Starting SSE connection:', { projectId, entities, url: url.replace(/token=[^&]+/, 'token=***') });
