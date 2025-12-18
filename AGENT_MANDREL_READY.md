@@ -2,9 +2,6 @@
 ## Essential Information for Immediate Mandrel Productivity
 
 ### 🚨 **FIRST ACTIONS EVERY SESSION**
-
-**If using Amp CLI:** Mandrel tools are automatically available (see Setup section below)
-
 ```typescript
 // ALWAYS DO THIS FIRST - Check system health and project context
 mandrel_ping()           // Verify connection
@@ -13,95 +10,6 @@ project_current()      // Know which project you're in
 ```
 
 **Result:** Immediately know if Mandrel is working and what project context you have.
-
----
-
-## 🔌 **SETUP: Add Mandrel to Amp CLI (One-Time)**
-
-If you're using **Amp** (Claude's command-line agent), integrate Mandrel as an MCP server for direct tool access.
-
-### Prerequisites
-- Mandrel project cloned locally
-- Amp CLI installed (`amp --version`)
-- Node.js 18+ with `tsx` available
-
-### Installation (Choose One Method)
-
-#### **Method 1: Quick Global Wrapper (Recommended)**
-
-```bash
-# 1. Create a global wrapper script in ~/.local/bin/
-cat > ~/.local/bin/mandrel-mcp << 'EOF'
-#!/bin/bash
-cd /path/to/mandrel
-exec node node_modules/.bin/tsx mcp-server/src/main.ts
-EOF
-
-chmod +x ~/.local/bin/mandrel-mcp
-
-# 2. Add to Amp (one-time)
-amp mcp add mandrel -- mandrel-mcp
-
-# 3. Verify it works
-amp mcp doctor mandrel
-```
-
-**Result:** `connected (27 tools: mandrel_ping, mandrel_status, context_store, ...)`
-
----
-
-#### **Method 2: From Project Directory**
-
-If you prefer not to use a global wrapper:
-
-```bash
-# 1. From the mandrel project root, add to Amp
-amp mcp add mandrel -- node node_modules/.bin/tsx mcp-server/src/main.ts
-
-# 2. Test it
-amp mcp list          # Should show: mandrel (command, global): node node_modules/.bin/tsx mcp-server/src/main.ts
-amp mcp doctor mandrel
-```
-
----
-
-### Troubleshooting
-
-**"MCP server connection was closed unexpectedly"**
-- Cause: Another Mandrel instance is running (process lock)
-- Fix: `pkill -f "mandrel/mcp-server" && rm -f /tmp/aidis-mcp-server.lock`
-- Then test again: `amp mcp doctor mandrel`
-
-**"Command not found: mandrel-mcp"**
-- Cause: Wrapper script not in PATH
-- Fix: Use full path in Amp config or verify `~/.local/bin` is in `$PATH`
-- Check: `echo $PATH | grep .local/bin`
-
-**Database Connection Issues**
-- Mandrel MCP requires PostgreSQL running on `localhost:5432`
-- Start: `cd mandrel && docker-compose up -d postgres redis`
-- Verify: `psql -h localhost -d aidis_production -c "\dt"`
-
----
-
-### Verification
-
-After setup, all 27 Mandrel tools are immediately available in any Amp thread:
-
-```bash
-# List all tools
-amp mcp list
-
-# Health check
-amp mcp doctor mandrel
-
-# In any Amp session, you can now call:
-# - mandrel_ping()
-# - context_store(content, type, tags?)
-# - project_current()
-# - decision_record(title, description, rationale, type, impact)
-# ... and all other 27 tools
-```
 
 ---
 
