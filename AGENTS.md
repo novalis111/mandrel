@@ -54,6 +54,28 @@ curl -X POST http://localhost:8080/mcp/tools/mandrel_ping \
 # {"success":true,"result":{"content":[{"type":"text","text":"🏓 Mandrel Pong! ..."}]}}
 ```
 
+**Amp CLI Setup** _(Optional - for agents using `amp` CLI)_
+
+To add Mandrel to Amp, use stdio transport instead of HTTP:
+
+```bash
+# 1. Create wrapper
+cat > ~/.local/bin/mandrel-mcp << 'EOF'
+#!/bin/bash
+cd /path/to/mandrel
+exec node node_modules/.bin/tsx mcp-server/src/main.ts
+EOF
+chmod +x ~/.local/bin/mandrel-mcp
+
+# 2. Register with Amp
+amp mcp add mandrel -- mandrel-mcp
+
+# 3. Verify
+amp mcp doctor mandrel
+```
+
+If process lock fails: `pkill -f "mandrel/mcp-server" && rm -f /tmp/aidis-mcp-server.lock`
+
 ### Session Startup Workflow
 
 1. `mandrel_ping` - Test HTTP bridge connection (via curl or direct tool call)
