@@ -1,5 +1,5 @@
 import { tasksHandler } from '../handlers/tasks.js';
-import { projectHandler } from '../handlers/project.js';
+import { db } from '../config/database.js';
 import { formatMcpError } from '../utils/mcpFormatter.js';
 import type { McpResponse } from '../utils/mcpFormatter.js';
 
@@ -9,13 +9,49 @@ import type { McpResponse } from '../utils/mcpFormatter.js';
  */
 export class TasksRoutes {
   /**
+   * Get list of available projects (minimal format)
+   */
+  private async getAvailableProjectsList(): Promise<string> {
+    try {
+      const result = await db.query(
+        'SELECT id, name FROM projects ORDER BY created_at DESC LIMIT 5'
+      );
+      if (result.rows.length === 0) {
+        return 'No projects available. Create one with: project_create(name="...")';
+      }
+      return result.rows.map((p, i) => 
+        `${i + 1}. **${p.name}** \`${p.id}\``
+      ).join('\n');
+    } catch (error) {
+      return 'Use project_list to find your project ID.';
+    }
+  }
+
+  /**
+   * Return formatted error with project list when projectId is missing
+   */
+  private async projectIdRequiredError(toolName: string): Promise<McpResponse> {
+    const projectsList = await this.getAvailableProjectsList();
+    return {
+      content: [{
+        type: 'text',
+        text: `❌ **projectId is REQUIRED** to prevent data leakage\n\n` +
+              `📋 **Available Projects:**\n${projectsList}\n\n` +
+              `🔧 Usage: ${toolName}(..., projectId="<project-id>")`
+      }],
+      isError: true
+    };
+  }
+  /**
    * Handle task creation requests
    */
   async handleCreate(args: any): Promise<McpResponse> {
     try {
-      // Ensure session is initialized before getting project ID
-      await projectHandler.initializeSession('default-session');
-      const projectId = args.projectId || await projectHandler.getCurrentProjectId('default-session');
+      // ⚠️  SECURITY: Require explicit projectId to prevent cross-project data leaks
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_create');
+      }
 
       const task = await tasksHandler.createTask(
         projectId,
@@ -60,7 +96,11 @@ export class TasksRoutes {
    */
   async handleList(args: any): Promise<McpResponse> {
     try {
-      const projectId = args.projectId || await projectHandler.getCurrentProjectId('default-session');
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_list');
+      }
       const tasks = await tasksHandler.listTasks(
         projectId,
         args.assignedTo,
@@ -127,6 +167,12 @@ export class TasksRoutes {
    */
   async handleUpdate(args: any): Promise<McpResponse> {
     try {
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_update');
+      }
+
       await tasksHandler.updateTaskStatus(args.taskId, args.status, args.assignedTo, args.metadata);
 
       const taskStatusIconMap = {
@@ -160,7 +206,11 @@ export class TasksRoutes {
    */
   async handleBulkUpdate(args: any): Promise<McpResponse> {
     try {
-      const projectId = args.projectId || await projectHandler.getCurrentProjectId('default-session');
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_bulk_update');
+      }
 
       const result = await tasksHandler.bulkUpdateTasks(args.task_ids, {
         status: args.status,
@@ -226,7 +276,11 @@ export class TasksRoutes {
    */
   async handleProgressSummary(args: any): Promise<McpResponse> {
     try {
-      const projectId = args.projectId || await projectHandler.getCurrentProjectId('default-session');
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_progress_summary');
+      }
       const groupBy = args.groupBy || 'phase';
 
       const summary = await tasksHandler.getTaskProgressSummary(projectId, groupBy);
@@ -291,7 +345,11 @@ export class TasksRoutes {
    */
   async handleDetails(args: any): Promise<McpResponse> {
     try {
-      const projectId = args.projectId || await projectHandler.getCurrentProjectId('default-session');
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_details');
+      }
 
       // Get single task with full details
       const tasks = await tasksHandler.listTasks(projectId);
@@ -349,6 +407,36 @@ export class TasksRoutes {
       };
     } catch (error) {
       return formatMcpError(error as Error, 'task_details');
+    }
+  }
+
+  /**
+   * Handle task deletion requests
+   */
+  async handleDelete(args: any): Promise<McpResponse> {
+    try {
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('task_delete');
+      }
+
+      if (!args.taskId) {
+        return formatMcpError('taskId is required', 'task_delete');
+      }
+
+      const result = await tasksHandler.deleteTask(args.taskId);
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Task Deleted Successfully**\n\n` +
+                `🆔 **Task ID:** ${result.deletedTask}\n\n` +
+                `💡 The task has been permanently removed from the project.`
+        }],
+      };
+    } catch (error) {
+      return formatMcpError(error as Error, 'task_delete');
     }
   }
 }

@@ -57,7 +57,12 @@ echo -e "${BLUE}🚀 Starting AIDIS Full Stack...${NC}"
 # Step 1: Clean shutdown of any existing processes
 echo -e "${YELLOW}🧹 Cleaning up existing processes...${NC}"
 
-# Kill by PID files (most reliable)
+# 1. Remove lock files first (allows fresh start)
+echo -e "${YELLOW}   Removing lock files...${NC}"
+rm -f mcp-server/aidis.pid logs/mandrel.pid
+echo -e "${YELLOW}   ✓ Lock files cleaned${NC}"
+
+# 2. Kill by PID files (most reliable)
 echo -e "${YELLOW}   Stopping by PID files...${NC}"
 if [ -f "./run/mandrel-command.pid" ]; then
     PID=$(cat ./run/mandrel-command.pid)
@@ -77,16 +82,25 @@ if [ -f "./run/mandrel-mcp.pid" ]; then
     rm -f ./run/mandrel-mcp.pid
 fi
 
-# Kill only Mandrel-specific processes (safer approach)
+# 3. Kill only Mandrel-specific processes (safer approach)
 echo -e "${YELLOW}   Killing Mandrel-specific processes...${NC}"
-pkill -f "mcp-server.*src/main.ts" 2>/dev/null || true
-pkill -f "mandrel-command.*npm.*dev:full" 2>/dev/null || true
-pkill -f "cd mandrel-command" 2>/dev/null || true
+pkill -9 -f "tsx.*src/main\.ts" 2>/dev/null || true
+pkill -9 -f "tsx.*src/server\.ts" 2>/dev/null || true
+pkill -9 -f "mandrel-command.*npm.*dev" 2>/dev/null || true
+pkill -9 -f "cd mandrel-command" 2>/dev/null || true
 
-# Kill processes in mandrel directories only
-pkill -f "mandrel" 2>/dev/null || true
+# 4. Free up common ports
+echo -e "${YELLOW}   Freeing ports...${NC}"
+for port in 8080 8081 3000 3001 3002; do
+    if lsof -i ":$port" > /dev/null 2>&1; then
+        PIDS=$(lsof -ti:"$port" 2>/dev/null)
+        if [ -n "$PIDS" ]; then
+            echo "$PIDS" | xargs kill -9 2>/dev/null || true
+        fi
+    fi
+done
 
-# Wait for processes to fully terminate
+# 5. Wait for processes to fully terminate
 echo -e "${YELLOW}   Waiting for processes to terminate...${NC}"
 sleep 2
 

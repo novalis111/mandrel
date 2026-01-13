@@ -515,6 +515,35 @@ export class TasksHandler {
             updatedAt: row.updated_at
         };
     }
+
+    /**
+     * Delete a task by ID
+     */
+    async deleteTask(taskId: string): Promise<{ success: boolean; deletedTask: string }> {
+        console.log(`🗑️  Deleting task: ${taskId}`);
+
+        try {
+            // Get task details before deletion
+            const result = await this.pool.query('SELECT id, title FROM tasks WHERE id = $1', [taskId]);
+            if (result.rows.length === 0) {
+                throw new Error(`Task not found: ${taskId}`);
+            }
+
+            // Delete task
+            await this.pool.query('DELETE FROM tasks WHERE id = $1', [taskId]);
+
+            console.log(`✅ Deleted task: ${taskId}`);
+
+            return {
+                success: true,
+                deletedTask: taskId
+            };
+
+        } catch (error) {
+            console.error('❌ Failed to delete task:', error);
+            throw new Error(`Failed to delete task: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
 }
 
 export const tasksHandler = new TasksHandler();

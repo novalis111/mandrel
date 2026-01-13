@@ -20,7 +20,7 @@
  */
 
 import { db } from '../config/database.js';
-import { projectHandler } from './project.js';
+
 import { logDecisionEvent, logEvent } from '../middleware/eventLogger.js';
 
 export interface TechnicalDecision {
@@ -645,14 +645,13 @@ export class DecisionsHandler {
       return projectId;
     }
 
-    await projectHandler.initializeSession();
-    const currentProject = await projectHandler.getCurrentProject();
-    
-    if (currentProject) {
-      return currentProject.id;
-    }
-
-    throw new Error('No current project set. Use project_switch to set an active project or specify a project ID.');
+    // ⚠️  FIX: SECURITY - Require explicit projectId to prevent cross-project data leaks
+    // HTTP bridge cannot reliably track session state across multiple concurrent clients
+    throw new Error(
+      '❌ projectId is REQUIRED to prevent cross-project data leaks. ' +
+      'HTTP bridge cannot reliably determine your current project across parallel clients. ' +
+      'Please pass projectId explicitly. Use project_list to find your project ID.'
+    );
   }
 
   private async checkForDuplicate(
@@ -704,6 +703,35 @@ export class DecisionsHandler {
       outcomeNotes: row.outcome_notes,
       lessonsLearned: row.lessons_learned
     };
+  }
+
+  /**
+   * Delete a decision by ID
+   */
+  async deleteDecision(decisionId: string): Promise<{ success: boolean; deletedDecision: string }> {
+    console.log(`🗑️  Deleting decision: ${decisionId}`);
+
+    try {
+      // Get decision details before deletion
+      const result = await db.query('SELECT id, title FROM technical_decisions WHERE id = $1', [decisionId]);
+      if (result.rows.length === 0) {
+        throw new Error(`Decision not found: ${decisionId}`);
+      }
+
+      // Delete decision
+      await db.query('DELETE FROM technical_decisions WHERE id = $1', [decisionId]);
+
+      console.log(`✅ Deleted decision: ${decisionId}`);
+
+      return {
+        success: true,
+        deletedDecision: decisionId
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to delete decision:', error);
+      throw new Error(`Failed to delete decision: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

@@ -224,6 +224,57 @@ export class DecisionsRoutes {
       return formatMcpError(error as Error, 'decision_stats');
     }
   }
+
+  /**
+   * Handle decision deletion requests
+   */
+  async handleDelete(args: any): Promise<McpResponse> {
+    try {
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('decision_delete');
+      }
+
+      if (!args.decisionId) {
+        return formatMcpError('decisionId is required', 'decision_delete');
+      }
+
+      const result = await decisionsHandler.deleteDecision(args.decisionId);
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Decision Deleted Successfully**\n\n` +
+                `🆔 **Decision ID:** ${result.deletedDecision}\n\n` +
+                `💡 The decision record has been permanently removed from the project.`
+        }],
+      };
+    } catch (error) {
+      return formatMcpError(error as Error, 'decision_delete');
+    }
+  }
+
+  /**
+   * Return formatted error with project list when projectId is missing
+   */
+  private async projectIdRequiredError(toolName: string): Promise<McpResponse> {
+    const { getAvailableProjects } = await import('../utils/projectIdHelper.js');
+    const projects = await getAvailableProjects();
+    const projectsList = projects.map((p, i) => 
+      `${i + 1}. **${p.name}** \`${p.id}\``
+    ).join('\n');
+    
+    return {
+      content: [{
+        type: 'text',
+        text: `❌ **projectId is REQUIRED** to prevent data leakage\n\n` +
+              `📋 **Available Projects:**\n${projectsList}\n\n` +
+              `🔧 Usage: ${toolName}(..., projectId="<project-id>")`
+      }],
+      isError: true
+    };
+  }
 }
 
 export const decisionsRoutes = new DecisionsRoutes();

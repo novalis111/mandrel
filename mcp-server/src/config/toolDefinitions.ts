@@ -98,9 +98,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
                 type: {
                   type: 'string',
                   description: 'Context type: code, decision, error, discussion, planning, completion, milestone, reflections, handoff'
+                },
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
                 }
               },
-              required: ['content', 'type'],
+              required: ['content', 'type', 'projectId'],
               additionalProperties: true
             },
           },
@@ -124,8 +128,17 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
             description: 'Get recent contexts in chronological order (newest first)',
             inputSchema: {
               type: 'object',
-              properties: {},
-              required: [],
+              properties: {
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
+                },
+                limit: {
+                  type: 'number',
+                  description: 'Maximum number of recent contexts to return (default: 5, max: 20)'
+                }
+              },
+              required: ['projectId'],
               additionalProperties: true
             },
           },
@@ -134,8 +147,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
             description: 'Get context statistics for a project',
             inputSchema: {
               type: 'object',
-              properties: {},
-              required: [],
+              properties: {
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
+                }
+              },
+              required: ['projectId'],
               additionalProperties: true
             },
           },
@@ -229,9 +247,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
                 impactLevel: {
                   type: 'string',
                   description: 'Impact: low, medium, high, critical'
+                },
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
                 }
               },
-              required: ['decisionType', 'title', 'description', 'rationale', 'impactLevel'],
+              required: ['decisionType', 'title', 'description', 'rationale', 'impactLevel', 'projectId'],
               additionalProperties: true
             },
           },
@@ -282,9 +304,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
                 title: {
                   type: 'string',
                   description: 'Task title'
+                },
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
                 }
               },
-              required: ['title'],
+              required: ['title', 'projectId'],
               additionalProperties: true
             },
           },
@@ -293,8 +319,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
             description: 'List tasks with optional filtering',
             inputSchema: {
               type: 'object',
-              properties: {},
-              required: [],
+              properties: {
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
+                }
+              },
+              required: ['projectId'],
               additionalProperties: true
             },
           },
@@ -326,9 +357,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
                 taskId: {
                   type: 'string',
                   description: 'Task ID'
+                },
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
                 }
               },
-              required: ['taskId'],
+              required: ['taskId', 'projectId'],
               additionalProperties: true
             },
           },
@@ -342,9 +377,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
                   type: 'array',
                   items: { type: 'string' },
                   description: 'Task IDs to update'
+                },
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
                 }
               },
-              required: ['task_ids'],
+              required: ['task_ids', 'projectId'],
               additionalProperties: true
             },
           },
@@ -353,8 +392,13 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
             description: 'Get task progress summary with grouping and completion percentages',
             inputSchema: {
               type: 'object',
-              properties: {},
-              required: [],
+              properties: {
+                projectId: {
+                  type: 'string',
+                  description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.'
+                }
+              },
+              required: ['projectId'],
               additionalProperties: true
             }
           },
@@ -395,6 +439,61 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
               type: 'object',
               properties: {},
               required: [],
+              additionalProperties: true
+            },
+          },
+
+          {
+            name: 'project_delete',
+            description: 'Delete a project by ID (cascade deletes contexts, tasks, decisions)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                projectId: { type: 'string', description: 'Project ID to delete' }
+              },
+              required: ['projectId'],
+              additionalProperties: true
+            },
+          },
+
+          {
+            name: 'context_delete',
+            description: 'Delete a context by ID (requires projectId for isolation)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                contextId: { type: 'string', description: 'Context ID to delete' },
+                projectId: { type: 'string', description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.' }
+              },
+              required: ['contextId', 'projectId'],
+              additionalProperties: true
+            },
+          },
+
+          {
+            name: 'task_delete',
+            description: 'Delete a task by ID (requires projectId for isolation)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                taskId: { type: 'string', description: 'Task ID to delete' },
+                projectId: { type: 'string', description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.' }
+              },
+              required: ['taskId', 'projectId'],
+              additionalProperties: true
+            },
+          },
+
+          {
+            name: 'decision_delete',
+            description: 'Delete a technical decision by ID (requires projectId for isolation)',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                decisionId: { type: 'string', description: 'Decision ID to delete' },
+                projectId: { type: 'string', description: 'Project ID (REQUIRED - HTTP bridge cannot infer current project across parallel clients). Use project_list to find your project ID.' }
+              },
+              required: ['decisionId', 'projectId'],
               additionalProperties: true
             },
           },

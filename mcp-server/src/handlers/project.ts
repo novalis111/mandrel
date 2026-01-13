@@ -441,6 +441,66 @@ export class ProjectHandler {
       throw new Error(`Failed to update project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
+
+  /**
+   * Delete a project by ID
+   * Cascade deletes contexts, tasks, decisions in that project
+   * Prevents deletion if it's the current project
+   */
+  async deleteProject(projectId: string): Promise<{ success: boolean; deletedProject: ProjectInfo; deletedCount: { contexts: number; tasks: number; decisions: number } }> {
+    console.log(`🗑️  Deleting project: ${projectId}`);
+
+    try {
+      // Check if trying to delete current project
+      const currentProjectId = await this.getCurrentProjectId();
+      if (currentProjectId === projectId) {
+        throw new Error('Cannot delete the currently active project. Switch to another project first.');
+      }
+
+      // Get project details before deletion
+      const projectResult = await db.query('SELECT * FROM projects WHERE id = $1', [projectId]);
+      if (projectResult.rows.length === 0) {
+        throw new Error(`Project not found: ${projectId}`);
+      }
+      const projectRow = projectResult.rows[0];
+
+      // Count cascade deletions
+      const contextsResult = await db.query('SELECT COUNT(*) as count FROM contexts WHERE project_id = $1', [projectId]);
+      const tasksResult = await db.query('SELECT COUNT(*) as count FROM tasks WHERE project_id = $1', [projectId]);
+      const decisionsResult = await db.query('SELECT COUNT(*) as count FROM technical_decisions WHERE project_id = $1', [projectId]);
+
+      const deletedCount = {
+        contexts: parseInt(contextsResult.rows[0].count || '0'),
+        tasks: parseInt(tasksResult.rows[0].count || '0'),
+        decisions: parseInt(decisionsResult.rows[0].count || '0')
+      };
+
+      // Delete project (CASCADE will delete contexts, tasks, decisions)
+      await db.query('DELETE FROM projects WHERE id = $1', [projectId]);
+
+      console.log(`✅ Deleted project: ${projectRow.name} (${deletedCount.contexts} contexts, ${deletedCount.tasks} tasks, ${deletedCount.decisions} decisions)`);
+
+      return {
+        success: true,
+        deletedProject: {
+          id: projectRow.id,
+          name: projectRow.name,
+          description: projectRow.description,
+          status: projectRow.status,
+          createdAt: projectRow.created_at,
+          updatedAt: projectRow.updated_at,
+          gitRepoUrl: projectRow.git_repo_url,
+          rootDirectory: projectRow.root_directory,
+          metadata: typeof projectRow.metadata === 'string' ? JSON.parse(projectRow.metadata) : projectRow.metadata
+        },
+        deletedCount
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to delete project:', error);
+      throw new Error(`Failed to delete project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 }
 
 // Export singleton instance

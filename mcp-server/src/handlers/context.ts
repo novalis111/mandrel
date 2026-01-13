@@ -12,7 +12,6 @@
 import { db } from '../config/database.js';
 import { embeddingService } from '../services/embedding.js';
 import { dimensionalityReductionService } from '../services/dimensionality-reduction.js';
-import { projectHandler } from './project.js';
 import { logContextEvent, logHierarchicalMemorySearch } from '../middleware/eventLogger.js';
 
 export interface StoreContextRequest {
@@ -579,16 +578,14 @@ export class ContextHandler {
       throw new Error(`Project ${projectId} not found`);
     }
 
-    // Use current active project from project handler
-    await projectHandler.initializeSession(); // Ensure session is initialized
-    const currentProject = await projectHandler.getCurrentProject();
-
-    if (currentProject) {
-      console.log(`📋 Using current project: ${currentProject.name}`);
-      return currentProject.id;
-    }
-
-    throw new Error('No current project set. Use project_switch to set an active project or specify a project ID.');
+    // ⚠️  FIX: SECURITY - Require explicit projectId to prevent cross-project data leaks
+    // HTTP bridge cannot reliably track session state across multiple concurrent clients
+    // See: https://github.com/novalis111/mandrel/issues/SESSION_ISOLATION
+    throw new Error(
+      '❌ projectId is REQUIRED to prevent cross-project data leaks. ' +
+      'HTTP bridge cannot reliably determine your current project across parallel clients. ' +
+      'Please pass projectId explicitly. Use project_list to find your project ID.'
+    );
   }
 
   /**
@@ -722,6 +719,35 @@ export class ContextHandler {
       recentContexts: parseInt(recent.rows[0].count),
       embeddedContexts: parseInt(embedded.rows[0].count)
     };
+  }
+
+  /**
+   * Delete a context by ID
+   */
+  async deleteContext(contextId: string): Promise<{ success: boolean; deletedContext: string }> {
+    console.log(`🗑️  Deleting context: ${contextId}`);
+
+    try {
+      // Get context details before deletion
+      const result = await db.query('SELECT id, content FROM contexts WHERE id = $1', [contextId]);
+      if (result.rows.length === 0) {
+        throw new Error(`Context not found: ${contextId}`);
+      }
+
+      // Delete context
+      await db.query('DELETE FROM contexts WHERE id = $1', [contextId]);
+
+      console.log(`✅ Deleted context: ${contextId}`);
+
+      return {
+        success: true,
+        deletedContext: contextId
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to delete context:', error);
+      throw new Error(`Failed to delete context: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 }
 

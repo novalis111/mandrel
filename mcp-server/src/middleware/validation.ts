@@ -62,13 +62,20 @@ export const contextSchemas = {
   
   get_recent: z.object({
     limit: z.number().int().min(1).max(20).default(5),
-    projectId: z.string().optional()
+    projectId: z.string().min(1).optional()
   }),
   
-  stats: z.object({})
-};
+  stats: z.object({
+    projectId: z.string().min(1).optional()
+  }),
 
-// Project Management Schemas
+  delete: z.object({
+    contextId: z.string().uuid(),
+    projectId: z.string().uuid()
+  })
+  };
+
+  // Project Management Schemas
 export const projectSchemas = {
   create: z.object({
     name: baseName,
@@ -97,10 +104,14 @@ export const projectSchemas = {
 
   insights: z.object({
     projectId: z.string().optional()
-  })
-};
+  }),
 
-// Naming Registry Schemas
+  delete: z.object({
+    projectId: z.string().uuid()
+  })
+  };
+
+  // Naming Registry Schemas
 export const namingSchemas = {
   register: z.object({
     canonicalName: baseName,
@@ -178,10 +189,15 @@ export const decisionSchemas = {
     status: z.enum(['active', 'superseded', 'deprecated']).optional()
   }),
   
-  stats: z.object({})
-};
+  stats: z.object({}),
 
-// Multi-Agent Coordination Schemas
+  delete: z.object({
+    decisionId: z.string().uuid(),
+    projectId: z.string().uuid()
+  })
+  };
+
+  // Multi-Agent Coordination Schemas
 export const agentSchemas = {
   register: z.object({
     name: z.string().min(1).max(100),
@@ -278,10 +294,15 @@ export const taskSchemas = {
   progress_summary: z.object({
     groupBy: z.enum(['phase', 'status', 'priority', 'type', 'assignedTo']).optional().default('phase'),
     projectId: z.string().optional()
-  })
-};
+  }),
 
-// Complexity Analysis Schemas
+  delete: z.object({
+    taskId: z.string().uuid(),
+    projectId: z.string().optional()
+  })
+  };
+
+  // Complexity Analysis Schemas
 export const complexitySchemas = {
   analyze: z.object({
     target: z.string().min(1),
@@ -362,6 +383,7 @@ export const validationSchemas = {
   context_search: contextSchemas.search,
   context_get_recent: contextSchemas.get_recent,
   context_stats: contextSchemas.stats,
+  context_delete: contextSchemas.delete,
   
   // Project Management
   project_create: projectSchemas.create,
@@ -370,6 +392,7 @@ export const validationSchemas = {
   project_list: projectSchemas.list,
   project_current: projectSchemas.current,
   project_insights: projectSchemas.insights,
+  project_delete: projectSchemas.delete,
   
   // Naming Registry
   naming_register: namingSchemas.register,
@@ -382,6 +405,7 @@ export const validationSchemas = {
   decision_search: decisionSchemas.search,
   decision_update: decisionSchemas.update,
   decision_stats: decisionSchemas.stats,
+  decision_delete: decisionSchemas.delete,
   
   // Multi-Agent Coordination
   agent_register: agentSchemas.register,
@@ -400,6 +424,7 @@ export const validationSchemas = {
   task_bulk_update: taskSchemas.bulk_update,
   task_details: taskSchemas.details,
   task_progress_summary: taskSchemas.progress_summary,
+  task_delete: taskSchemas.delete,
   
   // Complexity Analysis
   complexity_analyze: complexitySchemas.analyze,

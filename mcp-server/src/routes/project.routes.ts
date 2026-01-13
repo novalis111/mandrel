@@ -279,6 +279,35 @@ export class ProjectRoutes {
     // Included here for type safety but not exposed in routes/index.ts
     return formatMcpError('project_insights is handled by search routes', 'project_insights');
   }
+
+  /**
+   * Handle project deletion requests
+   */
+  async handleDelete(args: any): Promise<McpResponse> {
+    try {
+      if (!args.projectId) {
+        return formatMcpError('projectId is required', 'project_delete');
+      }
+
+      const result = await projectHandler.deleteProject(args.projectId);
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Project Deleted Successfully**\n\n` +
+                `📋 **Project:** ${result.deletedProject.name}\n` +
+                `🆔 **ID:** ${result.deletedProject.id}\n\n` +
+                `🗑️  **Cascade Deletions:**\n` +
+                `   • Contexts: ${result.deletedCount.contexts}\n` +
+                `   • Tasks: ${result.deletedCount.tasks}\n` +
+                `   • Decisions: ${result.deletedCount.decisions}\n\n` +
+                `💡 You may need to switch to another project if this was your active project.`
+        }],
+      };
+    } catch (error) {
+      return formatMcpError(error as Error, 'project_delete');
+    }
+  }
 }
 
 export const projectRoutes = new ProjectRoutes();

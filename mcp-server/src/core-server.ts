@@ -657,14 +657,23 @@ class AIDISCoreServer {
   }
 
   private async handleContextGetRecent(args: any) {
-    return contextHandler.getRecentContext(
-      args.sessionId || 'default-session',
-      args.limit
-    );
+    // Require projectId to prevent cross-project data leaks
+    console.log(`🔍 DEBUG handleContextGetRecent: args=`, JSON.stringify(args));
+    console.log(`🔍 DEBUG: projectId=${args.projectId}, isEmpty=${!args.projectId}`);
+    if (!args.projectId) {
+      const { projectIdMissingResponse } = await import('./utils/projectIdHelper.js');
+      return projectIdMissingResponse('context_get_recent');
+    }
+    return contextHandler.getRecentContext(args.projectId, args.limit);
   }
 
   private async handleContextStats(args: any) {
-    return contextHandler.getContextStats(args.sessionId || 'default-session');
+    // Require projectId to prevent cross-project data leaks
+    if (!args.projectId) {
+      const { projectIdMissingResponse } = await import('./utils/projectIdHelper.js');
+      return projectIdMissingResponse('context_stats');
+    }
+    return contextHandler.getContextStats(args.projectId);
   }
 
   // Project handlers

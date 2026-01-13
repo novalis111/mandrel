@@ -163,6 +163,9 @@ deps.json
 fixed-tool-list.js
 logging-config.env
 
+# Fork-specific work (local analysis, investigation, documentation)
+.fork/
+
 # Personal projects - not part of AIDIS
 projects/
 forge-web/

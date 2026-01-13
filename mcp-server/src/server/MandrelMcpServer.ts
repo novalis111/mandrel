@@ -405,6 +405,9 @@ export default class MandrelMcpServer {
                 circuitBreakerState: this.circuitBreaker.getState()
               }
             });
+
+            // Update health server status (ORACLE FIX #5: Health check flag)
+            this.healthServer.setDatabaseHealth(true);
           });
         });
 

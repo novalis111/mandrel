@@ -1,6 +1,7 @@
 import { contextHandler } from '../handlers/context.js';
 import { SessionTrackingMiddleware } from '../api/middleware/sessionTracking.js';
 import { formatMcpError } from '../utils/mcpFormatter.js';
+import { projectIdMissingResponse } from '../utils/projectIdHelper.js';
 import type { McpResponse } from '../utils/mcpFormatter.js';
 
 /**
@@ -122,6 +123,11 @@ export class ContextRoutes {
    */
   async handleGetRecent(args: any): Promise<McpResponse> {
     try {
+      // Validate projectId is provided
+      if (!args.projectId) {
+        return projectIdMissingResponse('context_get_recent');
+      }
+
       console.log(`📋 Context get recent request (limit: ${args.limit || 5})`);
 
       const results = await contextHandler.getRecentContext(args.projectId, args.limit);
@@ -165,6 +171,11 @@ export class ContextRoutes {
    */
   async handleStats(args: any): Promise<McpResponse> {
     try {
+      // Validate projectId is provided
+      if (!args.projectId) {
+        return projectIdMissingResponse('context_stats');
+      }
+
       console.log('📊 Context stats request received');
 
       const stats = await contextHandler.getContextStats(args.projectId);
@@ -187,6 +198,57 @@ export class ContextRoutes {
     } catch (error) {
       return formatMcpError(error as Error, 'context_stats');
     }
+  }
+
+  /**
+   * Handle context deletion requests
+   */
+  async handleDelete(args: any): Promise<McpResponse> {
+    try {
+      // ⚠️  SECURITY: Require explicit projectId
+      const projectId = args.projectId;
+      if (!projectId) {
+        return await this.projectIdRequiredError('context_delete');
+      }
+
+      if (!args.contextId) {
+        return formatMcpError('contextId is required', 'context_delete');
+      }
+
+      const result = await contextHandler.deleteContext(args.contextId);
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Context Deleted Successfully**\n\n` +
+                `🆔 **Context ID:** ${result.deletedContext}\n\n` +
+                `💡 The context has been permanently removed from the project.`
+        }],
+      };
+    } catch (error) {
+      return formatMcpError(error as Error, 'context_delete');
+    }
+  }
+
+  /**
+   * Return formatted error with project list when projectId is missing
+   */
+  private async projectIdRequiredError(toolName: string): Promise<McpResponse> {
+    const { getAvailableProjects } = await import('../utils/projectIdHelper.js');
+    const projects = await getAvailableProjects();
+    const projectsList = projects.map((p, i) => 
+      `${i + 1}. **${p.name}** \`${p.id}\``
+    ).join('\n');
+    
+    return {
+      content: [{
+        type: 'text',
+        text: `❌ **projectId is REQUIRED** to prevent data leakage\n\n` +
+              `📋 **Available Projects:**\n${projectsList}\n\n` +
+              `🔧 Usage: ${toolName}(..., projectId="<project-id>")`
+      }],
+      isError: true
+    };
   }
 }
 

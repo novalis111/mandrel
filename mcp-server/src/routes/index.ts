@@ -45,7 +45,7 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
       case 'aidis_examples': // DEPRECATED - use mandrel_examples
         return await systemRoutes.handleExamples(args);
 
-      // Context Management (4 tools)
+      // Context Management (5 tools)
       case 'context_store':
         return await contextRoutes.handleStore(args);
       case 'context_search':
@@ -54,8 +54,10 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
         return await contextRoutes.handleGetRecent(args);
       case 'context_stats':
         return await contextRoutes.handleStats(args);
+      case 'context_delete':
+        return await contextRoutes.handleDelete(args);
 
-      // Project Management (6 tools)
+      // Project Management (7 tools)
       case 'project_list':
         return await projectRoutes.handleList(args);
       case 'project_create':
@@ -66,8 +68,10 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
         return await projectRoutes.handleCurrent(args);
       case 'project_info':
         return await projectRoutes.handleInfo(args);
+      case 'project_delete':
+        return await projectRoutes.handleDelete(args);
 
-      // Technical Decisions (4 tools)
+      // Technical Decisions (5 tools)
       case 'decision_record':
         return await decisionsRoutes.handleRecord(args);
       case 'decision_search':
@@ -76,8 +80,10 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
         return await decisionsRoutes.handleUpdate(args);
       case 'decision_stats':
         return await decisionsRoutes.handleStats(args);
+      case 'decision_delete':
+        return await decisionsRoutes.handleDelete(args);
 
-      // Task Management (6 tools)
+      // Task Management (7 tools)
       case 'task_create':
         return await tasksRoutes.handleCreate(args);
       case 'task_list':
@@ -90,6 +96,8 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
         return await tasksRoutes.handleBulkUpdate(args);
       case 'task_progress_summary':
         return await tasksRoutes.handleProgressSummary(args);
+      case 'task_delete':
+        return await tasksRoutes.handleDelete(args);
 
       // Session Management (5 tools) - DELETED (2025-10-24)
       // Sessions auto-manage via SessionTracker service
