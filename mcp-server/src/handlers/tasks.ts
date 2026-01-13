@@ -8,7 +8,7 @@ export interface Task {
     title: string;
     description?: string;
     type: string;
-    status: 'todo' | 'in_progress' | 'blocked' | 'completed' | 'cancelled';
+    status: 'todo' | 'in_progress' | 'blocked' | 'completed' | 'cancelled' | 'rejected';
     priority: 'low' | 'medium' | 'high' | 'urgent';
     dependencies: string[];
     tags: string[];
@@ -514,6 +514,40 @@ export class TasksHandler {
             createdAt: row.created_at,
             updatedAt: row.updated_at
         };
+    }
+
+    /**
+     * Move a task to another project
+     */
+    async moveTask(taskId: string, targetProjectId: string): Promise<Task> {
+        console.log(`🔄 Moving task ${taskId} to project ${targetProjectId}`);
+
+        const client = await this.pool.connect();
+        try {
+            // Verify task exists
+            const taskResult = await client.query('SELECT * FROM tasks WHERE id = $1', [taskId]);
+            if (taskResult.rows.length === 0) {
+                throw new Error(`Task not found: ${taskId}`);
+            }
+
+            // Verify target project exists
+            const projectResult = await client.query('SELECT id FROM projects WHERE id = $1', [targetProjectId]);
+            if (projectResult.rows.length === 0) {
+                throw new Error(`Target project not found: ${targetProjectId}`);
+            }
+
+            // Update task's project_id
+            const updateResult = await client.query(
+                'UPDATE tasks SET project_id = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+                [targetProjectId, taskId]
+            );
+
+            console.log(`✅ Moved task to project ${targetProjectId}`);
+            return this.mapTask(updateResult.rows[0]);
+
+        } finally {
+            client.release();
+        }
     }
 
     /**

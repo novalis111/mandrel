@@ -1,7 +1,7 @@
 /**
  * TR009-4: Standardized Health Check System
  *
- * Provides comprehensive health monitoring for all AIDIS services
+ * Provides comprehensive health monitoring for all MANDREL services
  * with standardized endpoints and response formats
  */
 
@@ -141,7 +141,7 @@ export class HealthCheckService {
       const startTime = Date.now();
       try {
         const fs = await import('fs/promises');
-        const testFile = '/tmp/aidis-health-check.txt';
+        const testFile = '/tmp/mandrel-health-check.txt';
 
         // Test write
         await fs.writeFile(testFile, 'health check test');
@@ -221,7 +221,7 @@ export class HealthCheckService {
       timestamp: new Date().toISOString(),
       uptime: Math.floor((Date.now() - this.startTime) / 1000),
       checks,
-      version: process.env.AIDIS_VERSION || '1.0.0',
+      version: process.env.MANDREL_VERSION || '1.0.0',
       environment: process.env.NODE_ENV || 'development'
     };
   }

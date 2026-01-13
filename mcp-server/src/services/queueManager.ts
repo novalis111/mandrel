@@ -2,7 +2,7 @@ import { Queue, Worker, Job, QueueOptions, WorkerOptions } from 'bullmq';
 import IORedis from 'ioredis';
 
 /**
- * AIDIS Queue Manager
+ * MANDREL Queue Manager
  * Replaces timer-based polling with proper queue system
  * Based on TR004-4 audit findings: Feature flags polling, git tracking, metrics collection
  */
@@ -57,7 +57,7 @@ export class QueueManager {
   private redis: IORedis;
   private isShuttingDown = false;
 
-  constructor(queueName = 'aidis-background-jobs') {
+  constructor(queueName = 'mandrel-background-jobs') {
     this.redis = new IORedis(REDIS_CONFIG);
     this.queue = new Queue(queueName, DEFAULT_QUEUE_OPTIONS);
 

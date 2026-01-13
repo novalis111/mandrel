@@ -1,7 +1,7 @@
 /**
- * AIDIS Event Logging Middleware
+ * MANDREL Event Logging Middleware
  * 
- * This middleware captures all AIDIS operations into the analytics_events table.
+ * This middleware captures all MANDREL operations into the analytics_events table.
  * It provides the foundation for comprehensive analytics tracking across all
  * system operations including context storage, decision recording, and more.
  * 

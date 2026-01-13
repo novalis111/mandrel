@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * AIDIS MCP Server - ENTERPRISE HARDENED
+ * MANDREL MCP Server - ENTERPRISE HARDENED
  *
  * This is the main server class for our AI Development Intelligence System.
  * It creates an MCP server that AI agents can connect to for:
@@ -39,7 +39,7 @@ import {
 
 import { initializeDatabase, closeDatabase } from '../config/database.js';
 import { dbPool } from '../services/databasePool.js';
-import { AIDIS_TOOL_DEFINITIONS } from '../config/toolDefinitions.js';
+import { MANDREL_TOOL_DEFINITIONS } from '../config/toolDefinitions.js';
 import { validationMiddleware } from '../middleware/validation.js';
 import { SessionTracker, ensureActiveSession } from '../services/sessionTracker.js';
 import { ensureFeatureFlags } from '../utils/featureFlags.js';
@@ -50,16 +50,16 @@ import { projectHandler } from '../handlers/project.js';
 
 // Enterprise hardening constants
 const MAX_RETRIES = 3;
-// Helper function to get environment variable with AIDIS_ prefix and fallback
-function getEnvVar(aidisKey: string, legacyKey: string, defaultValue: string = ''): string {
-  return process.env[aidisKey] || process.env[legacyKey] || defaultValue;
+// Helper function to get environment variable with MANDREL_ prefix and fallback
+function getEnvVar(mandrelKey: string, legacyKey: string, defaultValue: string = ''): string {
+  return process.env[mandrelKey] || process.env[legacyKey] || defaultValue;
 }
 
-const SKIP_DATABASE = getEnvVar('AIDIS_SKIP_DATABASE', 'SKIP_DATABASE', 'false') === 'true';
-const SKIP_STDIO_TRANSPORT = getEnvVar('AIDIS_SKIP_STDIO', 'SKIP_STDIO', 'false') === 'true';
+const SKIP_DATABASE = getEnvVar('MANDREL_SKIP_DATABASE', 'SKIP_DATABASE', 'false') === 'true';
+const SKIP_STDIO_TRANSPORT = getEnvVar('MANDREL_SKIP_STDIO', 'SKIP_STDIO', 'false') === 'true';
 
 /**
- * AIDIS Server Class - ENTERPRISE HARDENED
+ * MANDREL Server Class - ENTERPRISE HARDENED
  *
  * This handles all MCP protocol communication and routes requests
  * to our various handlers (context, naming, decisions, etc.)
@@ -77,7 +77,7 @@ export default class MandrelMcpServer {
 
     this.server = new Server(
       {
-        name: 'aidis-mcp-server',
+        name: 'mandrel-mcp-server',
         version: '0.1.0-hardened',
       },
       {
@@ -198,7 +198,7 @@ export default class MandrelMcpServer {
 
     this.server.setRequestHandler(ListToolsRequestSchema, async () => {
       return {
-        tools: AIDIS_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name))
+        tools: MANDREL_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name))
       };
     });
 
@@ -226,9 +226,9 @@ export default class MandrelMcpServer {
       return {
         resources: [
           {
-            uri: 'aidis://status',
+            uri: 'mandrel://status',
             mimeType: 'application/json',
-            name: 'AIDIS Server Status',
+            name: 'MANDREL Server Status',
             description: 'Current server status and configuration',
           },
         ],
@@ -239,7 +239,7 @@ export default class MandrelMcpServer {
     this.server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const { uri } = request.params;
 
-      if (uri === 'aidis://status') {
+      if (uri === 'mandrel://status') {
         const status = await this.getServerStatus();
         return {
           contents: [
@@ -356,9 +356,9 @@ export default class MandrelMcpServer {
       environment: process.env.NODE_ENV || 'development',
       database: {
         connected: databaseConnected,
-        host: getEnvVar('AIDIS_DATABASE_HOST', 'DATABASE_HOST', 'localhost'),
-        port: getEnvVar('AIDIS_DATABASE_PORT', 'DATABASE_PORT', '5432'),
-        database: getEnvVar('AIDIS_DATABASE_NAME', 'DATABASE_NAME', 'aidis_development'),
+        host: getEnvVar('MANDREL_DATABASE_HOST', 'DATABASE_HOST', 'localhost'),
+        port: getEnvVar('MANDREL_DATABASE_PORT', 'DATABASE_PORT', '5432'),
+        database: getEnvVar('MANDREL_DATABASE_NAME', 'DATABASE_NAME', 'mandrel_development'),
       },
       memory: {
         used: memoryUsage.rss,
@@ -370,7 +370,7 @@ export default class MandrelMcpServer {
   }
 
   /**
-   * Start the AIDIS MCP Server
+   * Start the MANDREL MCP Server
    * Phase 6.3: Simplified using backgroundServices module
    */
   async start(): Promise<void> {
@@ -411,8 +411,8 @@ export default class MandrelMcpServer {
           });
         });
 
-        // Initialize session tracking for this AIDIS instance
-        console.log('📋 Ensuring session exists for this AIDIS instance...');
+        // Initialize session tracking for this MANDREL instance
+        console.log('📋 Ensuring session exists for this MANDREL instance...');
         try {
           const currentProject = await projectHandler.getCurrentProject();
 
@@ -441,7 +441,7 @@ export default class MandrelMcpServer {
           console.warn('   Contexts will be stored without session association');
         }
       } else {
-        console.log('🧪 Skipping database initialization (AIDIS_SKIP_DATABASE=true)');
+        console.log('🧪 Skipping database initialization (MANDREL_SKIP_DATABASE=true)');
       }
 
       // Phase 6.3: Start background services via backgroundServices module
@@ -472,18 +472,18 @@ export default class MandrelMcpServer {
         console.log('🤝 Connecting to MCP transport...');
         await this.server.connect(transport);
 
-        console.log('✅ AIDIS MCP Server is running and ready for connections!');
+        console.log('✅ MANDREL MCP Server is running and ready for connections!');
       } else {
-        console.log('🧪 Skipping MCP stdio transport (AIDIS_SKIP_STDIO=true)');
+        console.log('🧪 Skipping MCP stdio transport (MANDREL_SKIP_STDIO=true)');
       }
 
       console.log('🔒 Enterprise Security Features:');
       console.log(`   🔒 Process Singleton: ACTIVE (PID: ${process.pid})`);
       console.log(`   🔄 Retry Logic: ${MAX_RETRIES} attempts with exponential backoff`);
       console.log(`   ⚡ Circuit Breaker: ${this.circuitBreaker.getState().toUpperCase()}`);
-      console.log(`   🐛 MCP Debug: ${getEnvVar('AIDIS_MCP_DEBUG', 'MCP_DEBUG', 'DISABLED')}`);
+      console.log(`   🐛 MCP Debug: ${getEnvVar('MANDREL_MCP_DEBUG', 'MCP_DEBUG', 'DISABLED')}`);
 
-      console.log('🎯 AIDIS System Status: ONLINE');
+      console.log('🎯 MANDREL System Status: ONLINE');
 
     } catch (error) {
       // Enhanced error handling for startup failures

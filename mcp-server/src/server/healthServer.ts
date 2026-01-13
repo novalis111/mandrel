@@ -8,7 +8,7 @@ import express from 'express';
 import { logger } from '../utils/logger.js';
 import { portManager } from '../utils/portManager.js';
 import { dbPool, poolHealthCheck } from '../services/databasePool.js';
-import { AIDIS_TOOL_DEFINITIONS } from '../config/toolDefinitions.js';
+import { MANDREL_TOOL_DEFINITIONS } from '../config/toolDefinitions.js';
 import { ProjectController } from '../api/controllers/projectController.js';
 import createSessionRouter from '../api/v2/sessionRoutes.js';
 import createVisualizationRouter from '../api/v2/visualizationRoutes.js';
@@ -128,7 +128,7 @@ export class HealthServer {
    */
   async start(): Promise<number> {
     // Get port from port manager
-    this.port = await portManager.assignPort('aidis-mcp');
+    this.port = await portManager.assignPort('mandrel-mcp');
 
     // Create HTTP server from Express app
     this.server = http.createServer(this.app);
@@ -139,8 +139,8 @@ export class HealthServer {
           const actualPort = (this.server!.address() as any)?.port || this.port;
 
           // Register the service with its actual port
-          await portManager.registerService('aidis-mcp', actualPort, '/healthz');
-          await portManager.logPortConfiguration('aidis-mcp', actualPort);
+          await portManager.registerService('mandrel-mcp', actualPort, '/healthz');
+          await portManager.logPortConfiguration('mandrel-mcp', actualPort);
 
           logger.info(`✅ Health endpoints available:`);
           logger.info(`   🏥 Liveness:  http://localhost:${actualPort}/healthz`);
@@ -163,7 +163,7 @@ export class HealthServer {
       await new Promise<void>((resolve) => {
         this.server!.close(async () => {
           // Unregister the service from port registry
-          await portManager.unregisterService('aidis-mcp');
+          await portManager.unregisterService('mandrel-mcp');
           logger.info('✅ Health check server closed and unregistered');
           resolve();
         });
@@ -225,7 +225,7 @@ export class HealthServer {
     const mcpHealth = {
       status: 'healthy',
       transport: 'stdio',
-      tools_available: AIDIS_TOOL_DEFINITIONS.length,
+      tools_available: MANDREL_TOOL_DEFINITIONS.length,
       timestamp: new Date().toISOString()
     };
     res.json(mcpHealth);
@@ -262,21 +262,21 @@ export class HealthServer {
   private async handleToolSchemasExpress(_req: express.Request, res: express.Response): Promise<void> {
     res.json({
       success: true,
-      tools: AIDIS_TOOL_DEFINITIONS,
-      count: AIDIS_TOOL_DEFINITIONS.length,
+      tools: MANDREL_TOOL_DEFINITIONS,
+      count: MANDREL_TOOL_DEFINITIONS.length,
       timestamp: new Date().toISOString(),
-      note: 'Complete MCP tool definitions with inputSchema for all AIDIS tools'
+      note: 'Complete MCP tool definitions with inputSchema for all MANDREL tools'
     });
   }
 
   private async handleToolListExpress(_req: express.Request, res: express.Response): Promise<void> {
     res.json({
       success: true,
-      tools: AIDIS_TOOL_DEFINITIONS.map(tool => ({
+      tools: MANDREL_TOOL_DEFINITIONS.map(tool => ({
         ...tool,
         endpoint: `/mcp/tools/${tool.name}`
       })),
-      count: AIDIS_TOOL_DEFINITIONS.length,
+      count: MANDREL_TOOL_DEFINITIONS.length,
       timestamp: new Date().toISOString()
     });
   }
@@ -321,18 +321,18 @@ export class HealthServer {
         status: 'healthy',
         version: '2.0.0',
         timestamp: new Date().toISOString(),
-        toolsAvailable: AIDIS_TOOL_DEFINITIONS.length
+        toolsAvailable: MANDREL_TOOL_DEFINITIONS.length
       });
     } else if (path === '/tools' && req.method === 'GET') {
       res.json({
         success: true,
         version: '2.0.0',
         data: {
-          tools: AIDIS_TOOL_DEFINITIONS.map(tool => ({
+          tools: MANDREL_TOOL_DEFINITIONS.map(tool => ({
             name: tool.name,
             endpoint: `/v2/mcp/tools/${tool.name}`
           })),
-          totalCount: AIDIS_TOOL_DEFINITIONS.length
+          totalCount: MANDREL_TOOL_DEFINITIONS.length
         }
       });
     } else {

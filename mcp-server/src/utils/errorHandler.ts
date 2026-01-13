@@ -1,5 +1,5 @@
 /**
- * AIDIS Enhanced Error Handling and Logging
+ * MANDREL Enhanced Error Handling and Logging
  * 
  * Comprehensive error handling with:
  * - Structured error logging with full context

@@ -1,5 +1,5 @@
 /**
- * Real-time Git Tracking Service for AIDIS
+ * Real-time Git Tracking Service for MANDREL
  * 
  * Monitors git activity during active sessions and automatically
  * triggers correlation when commits are detected.

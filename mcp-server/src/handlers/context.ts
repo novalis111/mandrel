@@ -1,5 +1,5 @@
 /**
- * AIDIS Context Handler
+ * MANDREL Context Handler
  * 
  * This handles all context management operations:
  * - Storing context with automatic embedding generation
@@ -88,7 +88,7 @@ export class ContextHandler {
    * Combines title + tags + type + content for better semantic search
    */
   async storeContext(request: StoreContextRequest): Promise<ContextEntry> {
-    if (process.env.AIDIS_DETAILED_LOGGING === 'true') {
+    if (process.env.MANDREL_DETAILED_LOGGING === 'true') {
         console.log(`📝 Storing ${request.type} context: "${request.content.substring(0, 60)}..."`);
       }
 
@@ -201,7 +201,7 @@ export class ContextHandler {
         'umap'
       ];
 
-      if (process.env.AIDIS_DETAILED_LOGGING === 'true') {
+      if (process.env.MANDREL_DETAILED_LOGGING === 'true') {
         console.log(`🔍 DEBUG: Executing SQL query with parameters:`);
         console.log(`🔍 DEBUG: SQL: ${sqlQuery.replace(/\s+/g, ' ').trim()}`);
         console.log(`🔍 DEBUG: Param $3 (context_type): "${sqlParams[2]}" (${typeof sqlParams[2]})`);
@@ -230,7 +230,7 @@ export class ContextHandler {
         embedding: embeddingResult.embedding
       };
 
-      if (process.env.AIDIS_DETAILED_LOGGING === 'true') {
+      if (process.env.MANDREL_DETAILED_LOGGING === 'true') {
         console.log(`✅ Context stored successfully! ID: ${storedContext.id}`);
         console.log(`🔍 Embedding: ${embeddingResult.dimensions}D vector (${embeddingResult.model})`);
         console.log(`🏷️  Tags: [${storedContext.tags.join(', ')}]`);
@@ -722,8 +722,55 @@ export class ContextHandler {
   }
 
   /**
-   * Delete a context by ID
+   * Move a context to another project
    */
+  async moveContext(contextId: string, targetProjectId: string): Promise<ContextEntry> {
+    console.log(`🔄 Moving context ${contextId} to project ${targetProjectId}`);
+
+    try {
+      // Verify context exists
+      const contextResult = await db.query('SELECT * FROM contexts WHERE id = $1', [contextId]);
+      if (contextResult.rows.length === 0) {
+        throw new Error(`Context not found: ${contextId}`);
+      }
+
+      // Verify target project exists
+      const projectResult = await db.query('SELECT id FROM projects WHERE id = $1', [targetProjectId]);
+      if (projectResult.rows.length === 0) {
+        throw new Error(`Target project not found: ${targetProjectId}`);
+      }
+
+      // Update context's project_id
+      const updateResult = await db.query(
+        'UPDATE contexts SET project_id = $1 WHERE id = $2 RETURNING *',
+        [targetProjectId, contextId]
+      );
+
+      const row = updateResult.rows[0];
+      const movedContext: ContextEntry = {
+        id: row.id,
+        projectId: row.project_id,
+        sessionId: row.session_id,
+        contextType: row.context_type,
+        content: row.content,
+        createdAt: row.created_at,
+        relevanceScore: row.relevance_score,
+        tags: row.tags || [],
+        metadata: typeof row.metadata === 'string' ? JSON.parse(row.metadata) : row.metadata
+      };
+
+      console.log(`✅ Moved context to project ${targetProjectId}`);
+      return movedContext;
+
+    } catch (error) {
+      console.error('❌ Failed to move context:', error);
+      throw new Error(`Failed to move context: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+    * Delete a context by ID
+    */
   async deleteContext(contextId: string): Promise<{ success: boolean; deletedContext: string }> {
     console.log(`🗑️  Deleting context: ${contextId}`);
 
@@ -749,7 +796,7 @@ export class ContextHandler {
       throw new Error(`Failed to delete context: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-}
+  }
 
-// Export singleton instance
-export const contextHandler = new ContextHandler();
+  // Export singleton instance
+  export const contextHandler = new ContextHandler();

@@ -11,13 +11,13 @@ export interface FeatureFlagConfig {
 
 type FlagChangeListener = (flags: Record<string, boolean>) => void;
 
-const DEFAULT_REFRESH_INTERVAL = parseInt(process.env.AIDIS_FEATURE_FLAG_REFRESH_MS || '5000', 10);
-const DEFAULT_CONFIG_PATH = process.env.AIDIS_FEATURE_FLAG_PATH
-  ? path.resolve(process.env.AIDIS_FEATURE_FLAG_PATH)
+const DEFAULT_REFRESH_INTERVAL = parseInt(process.env.MANDREL_FEATURE_FLAG_REFRESH_MS || '5000', 10);
+const DEFAULT_CONFIG_PATH = process.env.MANDREL_FEATURE_FLAG_PATH
+  ? path.resolve(process.env.MANDREL_FEATURE_FLAG_PATH)
   : path.resolve(process.cwd(), '..', 'config', 'feature-flags.json');
 
 function loadOverridesFromEnv(): Record<string, boolean> {
-  const raw = process.env.AIDIS_FEATURE_FLAG_OVERRIDES;
+  const raw = process.env.MANDREL_FEATURE_FLAG_OVERRIDES;
   if (!raw) {
     return {};
   }
@@ -29,7 +29,7 @@ function loadOverridesFromEnv(): Record<string, boolean> {
       return acc;
     }, {});
   } catch (error) {
-    console.warn('[FeatureFlags] Failed to parse AIDIS_FEATURE_FLAG_OVERRIDES env var:', error);
+    console.warn('[FeatureFlags] Failed to parse MANDREL_FEATURE_FLAG_OVERRIDES env var:', error);
     return {};
   }
 }

@@ -24,7 +24,7 @@
  * - MANDREL_DEBUG: Enable debug logging (default: false)
  *
  * DEPRECATED (still supported with warnings):
- * - AIDIS_URL, AIDIS_TIMEOUT, AIDIS_RETRIES, AIDIS_DEBUG
+ * - MANDREL_URL, MANDREL_TIMEOUT, MANDREL_RETRIES, MANDREL_DEBUG
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
@@ -51,24 +51,24 @@ interface AdapterConfig {
   healthCheckInterval: number;
 }
 
-// Helper to get env var with MANDREL_ preferred, AIDIS_ fallback
-function getEnvWithFallback(mandrelKey: string, aidisKey: string, defaultValue: string): string {
+// Helper to get env var with MANDREL_ preferred, MANDREL_ fallback
+function getEnvWithFallback(mandrelKey: string, mandrelKey: string, defaultValue: string): string {
   if (process.env[mandrelKey]) {
     return process.env[mandrelKey]!;
   }
-  if (process.env[aidisKey]) {
-    console.error(`⚠️  ${aidisKey} is deprecated. Use ${mandrelKey} instead.`);
-    return process.env[aidisKey]!;
+  if (process.env[mandrelKey]) {
+    console.error(`⚠️  ${mandrelKey} is deprecated. Use ${mandrelKey} instead.`);
+    return process.env[mandrelKey]!;
   }
   return defaultValue;
 }
 
 const CONFIG: AdapterConfig = {
-  mandrelUrl: getEnvWithFallback('MANDREL_URL', 'AIDIS_URL', 'http://localhost:8080'),
-  timeout: parseInt(getEnvWithFallback('MANDREL_TIMEOUT', 'AIDIS_TIMEOUT', '30000')),
-  maxRetries: parseInt(getEnvWithFallback('MANDREL_RETRIES', 'AIDIS_RETRIES', '3')),
+  mandrelUrl: getEnvWithFallback('MANDREL_URL', 'MANDREL_URL', 'http://localhost:8080'),
+  timeout: parseInt(getEnvWithFallback('MANDREL_TIMEOUT', 'MANDREL_TIMEOUT', '30000')),
+  maxRetries: parseInt(getEnvWithFallback('MANDREL_RETRIES', 'MANDREL_RETRIES', '3')),
   retryDelay: 1000,
-  debug: getEnvWithFallback('MANDREL_DEBUG', 'AIDIS_DEBUG', 'false') === 'true',
+  debug: getEnvWithFallback('MANDREL_DEBUG', 'MANDREL_DEBUG', 'false') === 'true',
   healthCheckInterval: 60000 // 1 minute
 };
 

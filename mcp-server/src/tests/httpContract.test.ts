@@ -8,17 +8,17 @@ import { fileURLToPath } from 'url';
 // Provide required database env vars before importing the server module to
 // prevent config/database from throwing during module evaluation.
 if (!process.env.DATABASE_NAME) {
-  process.env.DATABASE_NAME = 'aidis_contract_test';
+  process.env.DATABASE_NAME = 'mandrel_contract_test';
 }
 process.env.DATABASE_USER = process.env.DATABASE_USER || 'contract_user';
 process.env.DATABASE_PASSWORD = process.env.DATABASE_PASSWORD || 'contract_pass';
 process.env.DATABASE_HOST = process.env.DATABASE_HOST || 'localhost';
-process.env.AIDIS_LOCK_FILE = process.env.AIDIS_LOCK_FILE || path.join(os.tmpdir(), 'aidis-contract.lock');
-process.env.AIDIS_SKIP_DATABASE = process.env.AIDIS_SKIP_DATABASE || 'true';
-process.env.AIDIS_SKIP_BACKGROUND = process.env.AIDIS_SKIP_BACKGROUND || 'true';
-process.env.AIDIS_SKIP_STDIO = process.env.AIDIS_SKIP_STDIO || 'true';
-process.env.AIDIS_AIDIS_MCP_PORT = process.env.AIDIS_AIDIS_MCP_PORT || '0';
-process.env.AIDIS_DISABLE_PROCESS_EXIT_HANDLERS = process.env.AIDIS_DISABLE_PROCESS_EXIT_HANDLERS || 'true';
+process.env.MANDREL_LOCK_FILE = process.env.MANDREL_LOCK_FILE || path.join(os.tmpdir(), 'mandrel-contract.lock');
+process.env.MANDREL_SKIP_DATABASE = process.env.MANDREL_SKIP_DATABASE || 'true';
+process.env.MANDREL_SKIP_BACKGROUND = process.env.MANDREL_SKIP_BACKGROUND || 'true';
+process.env.MANDREL_SKIP_STDIO = process.env.MANDREL_SKIP_STDIO || 'true';
+process.env.MANDREL_MANDREL_MCP_PORT = process.env.MANDREL_MANDREL_MCP_PORT || '0';
+process.env.MANDREL_DISABLE_PROCESS_EXIT_HANDLERS = process.env.MANDREL_DISABLE_PROCESS_EXIT_HANDLERS || 'true';
 
 let ServerCtor: typeof import('@/server/MandrelMcpServer').default;
 let processLock: typeof import('@/utils/processLock').processLock;
@@ -87,12 +87,12 @@ async function getRegisteredToolNamesFromSource() {
   return Array.from(names);
 }
 
-const SUCCESS_TOOLS = new Set(['aidis_ping', 'aidis_status', 'aidis_help', 'aidis_examples']);
+const SUCCESS_TOOLS = new Set(['mandrel_ping', 'mandrel_status', 'mandrel_help', 'mandrel_examples']);
 const TOOL_ARGUMENTS: Record<string, Record<string, unknown>> = {
-  aidis_ping: { message: 'contract regression' },
-  aidis_help: {},
-  aidis_status: {},
-  aidis_examples: { toolName: 'aidis_ping' },
+  mandrel_ping: { message: 'contract regression' },
+  mandrel_help: {},
+  mandrel_status: {},
+  mandrel_examples: { toolName: 'mandrel_ping' },
 };
 
 describe('HTTP ↔ MCP contract', () => {
@@ -109,7 +109,7 @@ describe('HTTP ↔ MCP contract', () => {
       ({ processLock } = await import('@/utils/processLock'));
     }
 
-    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'aidis-contract-'));
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'mandrel-contract-'));
     const flagFile = path.join(tempDir, 'flags.json');
     await fs.writeFile(
       flagFile,
@@ -125,19 +125,19 @@ describe('HTTP ↔ MCP contract', () => {
       'utf8',
     );
 
-    process.env.AIDIS_FEATURE_FLAG_PATH = flagFile;
-    process.env.AIDIS_LOCK_FILE = path.join(tempDir, 'aidis-server.lock');
-    process.env.AIDIS_SKIP_DATABASE = 'true';
-    process.env.AIDIS_SKIP_BACKGROUND = 'true';
-    process.env.AIDIS_SKIP_STDIO = 'true';
-    process.env.AIDIS_AIDIS_MCP_PORT = '0';
+    process.env.MANDREL_FEATURE_FLAG_PATH = flagFile;
+    process.env.MANDREL_LOCK_FILE = path.join(tempDir, 'mandrel-server.lock');
+    process.env.MANDREL_SKIP_DATABASE = 'true';
+    process.env.MANDREL_SKIP_BACKGROUND = 'true';
+    process.env.MANDREL_SKIP_STDIO = 'true';
+    process.env.MANDREL_MANDREL_MCP_PORT = '0';
 
     server = new ServerCtor();
     await server.start();
 
     const healthServer = (server as any).healthServer as import('http').Server;
     const address = healthServer.address();
-    const port = typeof address === 'object' && address ? address.port : Number(process.env.AIDIS_HEALTH_PORT || 8080);
+    const port = typeof address === 'object' && address ? address.port : Number(process.env.MANDREL_HEALTH_PORT || 8080);
     baseUrl = `http://localhost:${port}`;
   }, 60000);
 
@@ -155,16 +155,16 @@ describe('HTTP ↔ MCP contract', () => {
     }
   });
 
-  it('returns contract-compliant response for aidis_ping', async () => {
+  it('returns contract-compliant response for mandrel_ping', async () => {
     const message = 'contract test';
-    const { res, body } = await postTool(baseUrl, 'aidis_ping', { message });
+    const { res, body } = await postTool(baseUrl, 'mandrel_ping', { message });
     expect(res.status).toBe(200);
     const success = expectSuccessEnvelope(body) as { result: { content?: Array<{ text: string }> } };
-    expect(success.result.content?.[0]?.text).toMatch(/AIDIS Pong/);
+    expect(success.result.content?.[0]?.text).toMatch(/MANDREL Pong/);
     expect(success.result.content?.[0]?.text).toContain(message);
 
-    const directResult = await (server as any).executeMcpTool('aidis_ping', { message });
-    expect(directResult.content[0].text).toContain('AIDIS Pong');
+    const directResult = await (server as any).executeMcpTool('mandrel_ping', { message });
+    expect(directResult.content[0].text).toContain('MANDREL Pong');
     expect(directResult.content[0].text).toContain(message);
   });
 
@@ -176,7 +176,7 @@ describe('HTTP ↔ MCP contract', () => {
   }, 15000);
 
   it('exposes status data including feature flag summary', async () => {
-    const { res, body } = await postTool(baseUrl, 'aidis_status');
+    const { res, body } = await postTool(baseUrl, 'mandrel_status');
     expect(res.status).toBe(200);
     const success = expectSuccessEnvelope(body) as { result: { content?: Array<{ text: string }> } };
     const text = success.result.content?.[0]?.text ?? '';
@@ -184,12 +184,12 @@ describe('HTTP ↔ MCP contract', () => {
     expect(text).toMatch(/Environment:/);
   });
 
-  it('serves human-readable tool help via aidis_help', async () => {
-    const { res, body } = await postTool(baseUrl, 'aidis_help');
+  it('serves human-readable tool help via mandrel_help', async () => {
+    const { res, body } = await postTool(baseUrl, 'mandrel_help');
     expect(res.status).toBe(200);
     const success = expectSuccessEnvelope(body) as { result: { content?: Array<{ text: string }> } };
     const text = success.result.content?.[0]?.text ?? '';
-    expect(text).toMatch(/AIDIS/);
+    expect(text).toMatch(/MANDREL/);
     expect(text).toMatch(/tool/i);
   });
 

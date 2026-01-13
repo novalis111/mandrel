@@ -1,8 +1,8 @@
 /**
- * AIDIS Git Handler - TC004 Implementation
+ * MANDREL Git Handler - TC004 Implementation
  * 
  * Session-Git correlation MCP tools for tracking commit contributions
- * and linking development activity to AIDIS sessions automatically.
+ * and linking development activity to MANDREL sessions automatically.
  * 
  * Features:
  * - Get commits for a session (git_session_commits)

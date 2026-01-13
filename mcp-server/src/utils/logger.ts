@@ -1,5 +1,5 @@
 /**
- * AIDIS Comprehensive Logging System
+ * MANDREL Comprehensive Logging System
  * 
  * Provides structured JSON logging with:
  * - Request/response correlation tracking with unique IDs
@@ -190,19 +190,19 @@ export class Logger {
 
   constructor(config: Partial<LoggerConfig> = {}) {
     this.config = {
-      level: (process.env.AIDIS_LOG_LEVEL || process.env.LOG_LEVEL || 'info') as LogLevel,
-      logDir: process.env.AIDIS_LOG_DIR || process.env.LOG_DIR || path.resolve(process.cwd(), 'logs'),
-      maxFileSize: parseInt(process.env.AIDIS_LOG_MAX_SIZE || process.env.LOG_MAX_SIZE || '10485760'), // 10MB
-      maxFiles: parseInt(process.env.AIDIS_LOG_MAX_FILES || process.env.LOG_MAX_FILES || '10'),
-      enableConsole: (process.env.AIDIS_LOG_CONSOLE || process.env.LOG_CONSOLE || 'true') !== 'false',
-      enableFile: (process.env.AIDIS_LOG_FILE || process.env.LOG_FILE || 'true') !== 'false',
-      enablePerformanceLogging: (process.env.AIDIS_PERFORMANCE_LOGGING || process.env.PERFORMANCE_LOGGING || 'false') === 'true',
-      enableRequestLogging: (process.env.AIDIS_REQUEST_LOGGING || process.env.REQUEST_LOGGING || 'true') !== 'false',
-      correlationIdHeader: process.env.AIDIS_CORRELATION_ID_HEADER || process.env.CORRELATION_ID_HEADER || 'x-correlation-id',
+      level: (process.env.MANDREL_LOG_LEVEL || process.env.LOG_LEVEL || 'info') as LogLevel,
+      logDir: process.env.MANDREL_LOG_DIR || process.env.LOG_DIR || path.resolve(process.cwd(), 'logs'),
+      maxFileSize: parseInt(process.env.MANDREL_LOG_MAX_SIZE || process.env.LOG_MAX_SIZE || '10485760'), // 10MB
+      maxFiles: parseInt(process.env.MANDREL_LOG_MAX_FILES || process.env.LOG_MAX_FILES || '10'),
+      enableConsole: (process.env.MANDREL_LOG_CONSOLE || process.env.LOG_CONSOLE || 'true') !== 'false',
+      enableFile: (process.env.MANDREL_LOG_FILE || process.env.LOG_FILE || 'true') !== 'false',
+      enablePerformanceLogging: (process.env.MANDREL_PERFORMANCE_LOGGING || process.env.PERFORMANCE_LOGGING || 'false') === 'true',
+      enableRequestLogging: (process.env.MANDREL_REQUEST_LOGGING || process.env.REQUEST_LOGGING || 'true') !== 'false',
+      correlationIdHeader: process.env.MANDREL_CORRELATION_ID_HEADER || process.env.CORRELATION_ID_HEADER || 'x-correlation-id',
       ...config
     };
 
-    this.logFilePath = path.join(this.config.logDir, 'aidis-mcp.log');
+    this.logFilePath = path.join(this.config.logDir, 'mandrel-mcp.log');
     this.ensureLogDirectory();
   }
 

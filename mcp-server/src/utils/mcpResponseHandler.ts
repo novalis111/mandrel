@@ -1,6 +1,6 @@
 /**
  * TR001-5 & TR004-5: MCP Response Handler with Grammar Parser and Error Boundaries
- * Integrates robust parsing with existing AIDIS MCP infrastructure
+ * Integrates robust parsing with existing MANDREL MCP infrastructure
  */
 
 import { McpParser, McpResponse } from '../parsers/mcpParser.js';

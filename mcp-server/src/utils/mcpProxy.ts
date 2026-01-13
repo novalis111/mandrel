@@ -1,7 +1,7 @@
 /**
- * AIDIS MCP PROXY - Dual Mode Operation Fix
+ * MANDREL MCP PROXY - Dual Mode Operation Fix
  * 
- * This proxy allows MCP clients to connect to AIDIS when a SystemD service
+ * This proxy allows MCP clients to connect to MANDREL when a SystemD service
  * is already running, solving the process singleton conflict.
  */
 
@@ -15,7 +15,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 import * as http from 'http';
 
-export class AIDISMCPProxy {
+export class MANDRELMCPProxy {
   private server: Server;
   private healthEndpoint: string;
 
@@ -24,7 +24,7 @@ export class AIDISMCPProxy {
     
     this.server = new Server(
       {
-        name: 'aidis-mcp-proxy',
+        name: 'mandrel-mcp-proxy',
         version: '0.1.0-proxy',
       },
       {
@@ -120,18 +120,18 @@ export class AIDISMCPProxy {
       }
     } catch (error) {
       // Special handling for ping/status if HTTP fails
-      if (toolName === 'aidis_ping') {
+      if (toolName === 'mandrel_ping') {
         return {
           content: [
             {
               type: 'text',
-              text: `🏓 AIDIS Pong! Message: "${args.message || 'Hello AIDIS!'}" | Time: ${new Date().toISOString()} | Status: Proxy Error - ${(error as Error).message}`
+              text: `🏓 MANDREL Pong! Message: "${args.message || 'Hello MANDREL!'}" | Time: ${new Date().toISOString()} | Status: Proxy Error - ${(error as Error).message}`
             }
           ]
         };
       }
 
-      if (toolName === 'aidis_status') {
+      if (toolName === 'mandrel_status') {
         try {
           const healthResponse = await this.makeHttpRequest(`${this.healthEndpoint}/healthz`);
           const healthData = JSON.parse(healthResponse);
@@ -140,7 +140,7 @@ export class AIDISMCPProxy {
             content: [
               {
                 type: 'text',
-                text: `🎯 AIDIS Server Status Report (via Proxy)\n\n` +
+                text: `🎯 MANDREL Server Status Report (via Proxy)\n\n` +
                       `Version: ${healthData.version}\n` +
                       `Uptime: ${healthData.uptime}s\n` +
                       `Database: ✅ Connected\n` +
@@ -563,7 +563,7 @@ export class AIDISMCPProxy {
           // Smart Search & AI Recommendations
           {
             name: 'smart_search',
-            description: 'Smart search across all AIDIS data',
+            description: 'Smart search across all MANDREL data',
             inputSchema: {
               type: 'object',
               properties: {
@@ -620,7 +620,7 @@ export class AIDISMCPProxy {
    * Start the MCP proxy server
    */
   async start(): Promise<void> {
-    console.log('🔄 Starting AIDIS MCP Proxy...');
+    console.log('🔄 Starting MANDREL MCP Proxy...');
     
     // Verify SystemD service is running
     const isRunning = await this.isSystemDServiceRunning();
@@ -652,10 +652,10 @@ export class AIDISMCPProxy {
    * Graceful shutdown
    */
   async shutdown(): Promise<void> {
-    console.log('📴 Shutting down AIDIS MCP Proxy...');
+    console.log('📴 Shutting down MANDREL MCP Proxy...');
     // No special cleanup needed for proxy
     console.log('✅ Proxy shutdown complete');
   }
 }
 
-export default AIDISMCPProxy;
+export default MANDRELMCPProxy;

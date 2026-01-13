@@ -21,28 +21,28 @@ import { searchRoutes } from './search.routes.js';
 export async function routeExecutor(toolName: string, args: any): Promise<McpResponse> {
   try {
     // Log deprecation warning for old tool names
-    const deprecatedTools = ['aidis_ping', 'aidis_status', 'aidis_help', 'aidis_explain', 'aidis_examples'];
+    const deprecatedTools = ['mandrel_ping', 'mandrel_status', 'mandrel_help', 'mandrel_explain', 'mandrel_examples'];
     if (deprecatedTools.includes(toolName)) {
-      const newName = toolName.replace('aidis_', 'mandrel_');
+      const newName = toolName.replace('mandrel_', 'mandrel_');
       console.warn(`⚠️  Tool '${toolName}' is deprecated. Use '${newName}' instead.`);
     }
 
     switch (toolName) {
       // System & Navigation (5 tools)
       case 'mandrel_ping':
-      case 'aidis_ping': // DEPRECATED - use mandrel_ping
+      case 'mandrel_ping': // DEPRECATED - use mandrel_ping
         return await systemRoutes.handlePing(args);
       case 'mandrel_status':
-      case 'aidis_status': // DEPRECATED - use mandrel_status
+      case 'mandrel_status': // DEPRECATED - use mandrel_status
         return await systemRoutes.handleStatus();
       case 'mandrel_help':
-      case 'aidis_help': // DEPRECATED - use mandrel_help
+      case 'mandrel_help': // DEPRECATED - use mandrel_help
         return await systemRoutes.handleHelp();
       case 'mandrel_explain':
-      case 'aidis_explain': // DEPRECATED - use mandrel_explain
+      case 'mandrel_explain': // DEPRECATED - use mandrel_explain
         return await systemRoutes.handleExplain(args);
       case 'mandrel_examples':
-      case 'aidis_examples': // DEPRECATED - use mandrel_examples
+      case 'mandrel_examples': // DEPRECATED - use mandrel_examples
         return await systemRoutes.handleExamples(args);
 
       // Context Management (5 tools)
@@ -57,7 +57,7 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
       case 'context_delete':
         return await contextRoutes.handleDelete(args);
 
-      // Project Management (7 tools)
+      // Project Management (8 tools)
       case 'project_list':
         return await projectRoutes.handleList(args);
       case 'project_create':
@@ -68,6 +68,8 @@ export async function routeExecutor(toolName: string, args: any): Promise<McpRes
         return await projectRoutes.handleCurrent(args);
       case 'project_info':
         return await projectRoutes.handleInfo(args);
+      case 'project_migrate':
+        return await projectRoutes.handleMigrate(args);
       case 'project_delete':
         return await projectRoutes.handleDelete(args);
 

@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import process from 'process';
 
-const LOCK_FILE = process.env.AIDIS_LOCK_FILE || path.join(process.cwd(), 'aidis.pid');
+const LOCK_FILE = process.env.MANDREL_LOCK_FILE || path.join(process.cwd(), 'mandrel.pid');
 
 export class ProcessLock {
   private static instance: ProcessLock;
@@ -30,7 +30,7 @@ export class ProcessLock {
         // Check if process with that PID is still running
         try {
           process.kill(parseInt(existingPid), 0); // Signal 0 just checks if process exists
-          throw new Error(`AIDIS is already running with PID ${existingPid}. Only one instance allowed.`);
+          throw new Error(`MANDREL is already running with PID ${existingPid}. Only one instance allowed.`);
         } catch (err: any) {
           if (err.code === 'ESRCH') {
             // Process doesn't exist, remove stale lock file
@@ -48,7 +48,7 @@ export class ProcessLock {
       
       console.log(`✅ Process lock acquired (PID: ${process.pid})`);
       
-      const disableExitHandlers = process.env.AIDIS_DISABLE_PROCESS_EXIT_HANDLERS === 'true';
+      const disableExitHandlers = process.env.MANDREL_DISABLE_PROCESS_EXIT_HANDLERS === 'true';
 
       // Always release lock on normal process exit
       process.on('exit', () => this.release());

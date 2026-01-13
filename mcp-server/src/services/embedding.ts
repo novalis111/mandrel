@@ -1,5 +1,5 @@
 /**
- * AIDIS Embedding Service
+ * MANDREL Embedding Service
  * 
  * This service converts text content into vector embeddings for semantic search.
  * It handles the magic of turning human language into mathematical vectors that

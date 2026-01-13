@@ -1,5 +1,5 @@
 /**
- * AIDIS Project Management Handler
+ * MANDREL Project Management Handler
  * 
  * This handles all project management operations:
  * - Creating and managing projects
@@ -338,7 +338,7 @@ export class ProjectHandler {
     }
 
     // Priority 3: Fall back to system defaults
-    let defaultProject = projects.find(p => p.name === 'aidis-bootstrap');
+    let defaultProject = projects.find(p => p.name === 'mandrel-bootstrap');
     if (defaultProject) {
       console.log(`✅ Using system default project: ${defaultProject.name}`);
     } else {
@@ -443,12 +443,112 @@ export class ProjectHandler {
   }
 
   /**
-   * Delete a project by ID
-   * Cascade deletes contexts, tasks, decisions in that project
-   * Prevents deletion if it's the current project
-   */
-  async deleteProject(projectId: string): Promise<{ success: boolean; deletedProject: ProjectInfo; deletedCount: { contexts: number; tasks: number; decisions: number } }> {
-    console.log(`🗑️  Deleting project: ${projectId}`);
+    * Migrate one project into another (consolidate two projects)
+    * Moves all contexts, tasks, and decisions from source to target, then deletes source
+    */
+  async migrateProject(sourceProjectId: string, targetProjectId: string, confirmed: boolean = false): Promise<{ success: boolean; requiresConfirmation: boolean; migrationSummary?: { movedAnalyticsEvents: number; movedContexts: number; movedTasks: number; movedDecisions: number; sourceProjectName: string; targetProjectName: string }; warning?: string }> {
+    console.log(`🔄 Project migration requested: ${sourceProjectId} → ${targetProjectId} (confirmed: ${confirmed})`);
+
+    try {
+      // Verify both projects exist
+      const sourceResult = await db.query('SELECT * FROM projects WHERE id = $1', [sourceProjectId]);
+      if (sourceResult.rows.length === 0) {
+        throw new Error(`Source project not found: ${sourceProjectId}`);
+      }
+      const sourceProject = sourceResult.rows[0];
+
+      const targetResult = await db.query('SELECT * FROM projects WHERE id = $1', [targetProjectId]);
+      if (targetResult.rows.length === 0) {
+        throw new Error(`Target project not found: ${targetProjectId}`);
+      }
+      const targetProject = targetResult.rows[0];
+
+      // Count items to migrate
+      const analyticsResult = await db.query('SELECT COUNT(*) as count FROM analytics_events WHERE project_id = $1', [sourceProjectId]);
+      const contextsResult = await db.query('SELECT COUNT(*) as count FROM contexts WHERE project_id = $1', [sourceProjectId]);
+      const tasksResult = await db.query('SELECT COUNT(*) as count FROM tasks WHERE project_id = $1', [sourceProjectId]);
+      const decisionsResult = await db.query('SELECT COUNT(*) as count FROM technical_decisions WHERE project_id = $1', [sourceProjectId]);
+
+      const counts = {
+        analyticsEvents: parseInt(analyticsResult.rows[0].count || '0'),
+        contexts: parseInt(contextsResult.rows[0].count || '0'),
+        tasks: parseInt(tasksResult.rows[0].count || '0'),
+        decisions: parseInt(decisionsResult.rows[0].count || '0')
+      };
+
+      // If not confirmed, return warning
+      if (!confirmed) {
+        const totalItems = Object.values(counts).reduce((a, b) => a + b, 0);
+        console.log(`⚠️  Project migration requires confirmation. Would move: ${totalItems} items`);
+        return {
+          success: false,
+          requiresConfirmation: true,
+          warning: `⚠️  CONSOLIDATION: Migrating "${sourceProject.name}" into "${targetProject.name}" will move:
+  • ${counts.analyticsEvents} analytics events
+  • ${counts.contexts} contexts
+  • ${counts.tasks} tasks
+  • ${counts.decisions} decisions
+  
+After migration, "${sourceProject.name}" will be deleted.
+To confirm migration, call this tool again with confirmed: true`
+        };
+      }
+
+      // Migrate analytics events first (has foreign key constraint)
+      if (counts.analyticsEvents > 0) {
+        await db.query('UPDATE analytics_events SET project_id = $1 WHERE project_id = $2', [targetProjectId, sourceProjectId]);
+        console.log(`✅ Migrated ${counts.analyticsEvents} analytics events`);
+      }
+
+      // Migrate contexts
+      if (counts.contexts > 0) {
+        await db.query('UPDATE contexts SET project_id = $1 WHERE project_id = $2', [targetProjectId, sourceProjectId]);
+        console.log(`✅ Migrated ${counts.contexts} contexts`);
+      }
+
+      // Migrate tasks
+      if (counts.tasks > 0) {
+        await db.query('UPDATE tasks SET project_id = $1 WHERE project_id = $2', [targetProjectId, sourceProjectId]);
+        console.log(`✅ Migrated ${counts.tasks} tasks`);
+      }
+
+      // Migrate decisions
+      if (counts.decisions > 0) {
+        await db.query('UPDATE technical_decisions SET project_id = $1 WHERE project_id = $2', [targetProjectId, sourceProjectId]);
+        console.log(`✅ Migrated ${counts.decisions} decisions`);
+      }
+
+      // Delete source project (CASCADE will handle any remaining relationships)
+      await db.query('DELETE FROM projects WHERE id = $1', [sourceProjectId]);
+      console.log(`✅ Deleted source project: ${sourceProject.name}`);
+
+      return {
+        success: true,
+        requiresConfirmation: false,
+        migrationSummary: {
+          movedAnalyticsEvents: counts.analyticsEvents,
+          movedContexts: counts.contexts,
+          movedTasks: counts.tasks,
+          movedDecisions: counts.decisions,
+          sourceProjectName: sourceProject.name,
+          targetProjectName: targetProject.name
+        }
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to migrate project:', error);
+      throw new Error(`Failed to migrate project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+    * Delete a project by ID
+    * Cascade deletes contexts, tasks, decisions, and analytics events in that project
+    * Prevents deletion if it's the current project
+    * Requires explicit confirmation to prevent accidental deletion
+    */
+  async deleteProject(projectId: string, confirmed: boolean = false): Promise<{ success: boolean; requiresConfirmation: boolean; deletedProject?: ProjectInfo; deletedCount?: { analyticsEvents: number; contexts: number; tasks: number; decisions: number }; warning?: string }> {
+    console.log(`🗑️  Delete project requested: ${projectId} (confirmed: ${confirmed})`);
 
     try {
       // Check if trying to delete current project
@@ -457,31 +557,56 @@ export class ProjectHandler {
         throw new Error('Cannot delete the currently active project. Switch to another project first.');
       }
 
-      // Get project details before deletion
+      // Get project details
       const projectResult = await db.query('SELECT * FROM projects WHERE id = $1', [projectId]);
       if (projectResult.rows.length === 0) {
         throw new Error(`Project not found: ${projectId}`);
       }
       const projectRow = projectResult.rows[0];
 
-      // Count cascade deletions
+      // Count what will be deleted
+      const analyticsResult = await db.query('SELECT COUNT(*) as count FROM analytics_events WHERE project_id = $1', [projectId]);
       const contextsResult = await db.query('SELECT COUNT(*) as count FROM contexts WHERE project_id = $1', [projectId]);
       const tasksResult = await db.query('SELECT COUNT(*) as count FROM tasks WHERE project_id = $1', [projectId]);
       const decisionsResult = await db.query('SELECT COUNT(*) as count FROM technical_decisions WHERE project_id = $1', [projectId]);
 
       const deletedCount = {
+        analyticsEvents: parseInt(analyticsResult.rows[0].count || '0'),
         contexts: parseInt(contextsResult.rows[0].count || '0'),
         tasks: parseInt(tasksResult.rows[0].count || '0'),
         decisions: parseInt(decisionsResult.rows[0].count || '0')
       };
 
+      // If not confirmed, return warning with counts
+      if (!confirmed) {
+        const totalItems = Object.values(deletedCount).reduce((a, b) => a + b, 0);
+        console.log(`⚠️  Project deletion requires confirmation. Would delete: ${totalItems} items`);
+        return {
+          success: false,
+          requiresConfirmation: true,
+          warning: `⚠️  DESTRUCTIVE OPERATION: Deleting project "${projectRow.name}" will permanently remove:
+  • ${deletedCount.analyticsEvents} analytics events
+  • ${deletedCount.contexts} contexts
+  • ${deletedCount.tasks} tasks
+  • ${deletedCount.decisions} decisions
+  
+To confirm deletion, call this tool again with confirmed: true`
+        };
+      }
+
+      // Delete analytics events first
+      if (deletedCount.analyticsEvents > 0) {
+        await db.query('DELETE FROM analytics_events WHERE project_id = $1', [projectId]);
+      }
+
       // Delete project (CASCADE will delete contexts, tasks, decisions)
       await db.query('DELETE FROM projects WHERE id = $1', [projectId]);
 
-      console.log(`✅ Deleted project: ${projectRow.name} (${deletedCount.contexts} contexts, ${deletedCount.tasks} tasks, ${deletedCount.decisions} decisions)`);
+      console.log(`✅ Deleted project: ${projectRow.name} (${deletedCount.analyticsEvents} analytics events, ${deletedCount.contexts} contexts, ${deletedCount.tasks} tasks, ${deletedCount.decisions} decisions)`);
 
       return {
         success: true,
+        requiresConfirmation: false,
         deletedProject: {
           id: projectRow.id,
           name: projectRow.name,

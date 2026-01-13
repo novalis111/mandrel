@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 /**
- * AIDIS CORE HTTP API SERVER - PURE HTTP SERVICE
+ * MANDREL CORE HTTP API SERVER - PURE HTTP SERVICE
  * 
- * This is the core AIDIS service that provides pure HTTP API endpoints.
+ * This is the core MANDREL service that provides pure HTTP API endpoints.
  * STDIO MCP transport has been extracted to separate adapters.
  * 
  * Core Features:
- * - HTTP API for all 96 AIDIS tools
+ * - HTTP API for all 96 MANDREL tools
  * - Health endpoints (/healthz, /readyz)
  * - Database connectivity with circuit breaker
  * - Process management and graceful shutdown
@@ -16,7 +16,7 @@
  * ✅ Remove STDIO transport dependencies
  * ✅ Keep all HTTP endpoints functional
  * ✅ Preserve database connectivity and reliability features
- * ✅ Maintain all 96 AIDIS tools via HTTP API
+ * ✅ Maintain all 96 MANDREL tools via HTTP API
  */
 
 import { processLock } from './utils/processLock.js';
@@ -35,7 +35,7 @@ import {
 } from '@modelcontextprotocol/sdk/types.js';
 
 import { initializeDatabase, closeDatabase } from './config/database.js';
-import { AIDIS_TOOL_DEFINITIONS } from './config/toolDefinitions.js';
+import { MANDREL_TOOL_DEFINITIONS } from './config/toolDefinitions.js';
 import { contextHandler } from './handlers/context.js';
 import { projectHandler } from './handlers/project.js';
 import { decisionsHandler } from './handlers/decisions.js';
@@ -47,18 +47,18 @@ import { agentsHandler } from './handlers/agents.js';
 import { validationMiddleware } from './middleware/validation.js';
 
 // Enterprise hardening constants
-// const PID_FILE = '/home/ridgetop/aidis/run/aidis-core.pid'; // Commented out - ProcessSingleton disabled
-const HTTP_PORT = process.env.AIDIS_HTTP_PORT || 8080;
+// const PID_FILE = '/home/ridgetop/mandrel/run/mandrel-core.pid'; // Commented out - ProcessSingleton disabled
+const HTTP_PORT = process.env.MANDREL_HTTP_PORT || 8080;
 const MAX_RETRIES = 3;
 const INITIAL_RETRY_DELAY = 1000;
 
 // Enable debug logging if needed
-if (process.env.AIDIS_DEBUG) {
-  console.log('🐛 AIDIS Core debug logging enabled:', process.env.AIDIS_DEBUG);
+if (process.env.MANDREL_DEBUG) {
+  console.log('🐛 MANDREL Core debug logging enabled:', process.env.MANDREL_DEBUG);
 }
 
 /**
- * Process Singleton - Prevent multiple AIDIS core instances
+ * Process Singleton - Prevent multiple MANDREL core instances
  * Note: Disabled for now - may be re-enabled in future
  */
 /*
@@ -78,7 +78,7 @@ class _ProcessSingleton {
         // Check if process is still running
         try {
           process.kill(parseInt(existingPid), 0); // Signal 0 tests if process exists
-          console.error(`❌ AIDIS Core instance already running (PID: ${existingPid})`);
+          console.error(`❌ MANDREL Core instance already running (PID: ${existingPid})`);
           console.error(`🔧 To force restart: rm ${this.pidFile} && kill ${existingPid}`);
           return false;
         } catch (error) {
@@ -206,12 +206,12 @@ class RetryHandler {
 }
 
 /**
- * AIDIS Core HTTP Server - Pure HTTP API Service
+ * MANDREL Core HTTP Server - Pure HTTP API Service
  * 
- * This provides all AIDIS functionality via HTTP endpoints.
+ * This provides all MANDREL functionality via HTTP endpoints.
  * No STDIO transport - pure HTTP service for maximum reliability.
  */
-class AIDISCoreServer {
+class MANDRELCoreServer {
   private httpServer: http.Server | null = null;
   private circuitBreaker: CircuitBreaker;
   private dbHealthy: boolean = false;
@@ -223,7 +223,7 @@ class AIDISCoreServer {
   }
 
   /**
-   * Setup pure HTTP server with all AIDIS endpoints
+   * Setup pure HTTP server with all MANDREL endpoints
    */
   private setupHttpServer(): void {
     this.httpServer = http.createServer(async (req, res) => {
@@ -248,7 +248,7 @@ class AIDISCoreServer {
           uptime: process.uptime(),
           pid: process.pid,
           version: '1.0.0-core',
-          service: 'aidis-core-http'
+          service: 'mandrel-core-http'
         }));
         
       } else if (req.url === '/readyz') {
@@ -264,7 +264,7 @@ class AIDISCoreServer {
         }));
         
       } else if (req.url?.startsWith('/mcp/tools/') && req.method === 'POST') {
-        // AIDIS Tool HTTP Endpoints
+        // MANDREL Tool HTTP Endpoints
         await this.handleToolRequest(req, res);
         
       } else if (req.url === '/mcp/tools' && req.method === 'GET') {
@@ -274,7 +274,7 @@ class AIDISCoreServer {
           'code_analyze', 'code_components', 'code_dependencies', 'code_impact', 'code_stats',
           'git_session_commits', 'git_commit_sessions', 'git_correlate_session'
         ];
-        const activeTools = AIDIS_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name));
+        const activeTools = MANDREL_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name));
 
         try {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -305,7 +305,7 @@ class AIDISCoreServer {
           'code_analyze', 'code_components', 'code_dependencies', 'code_impact', 'code_stats',
           'git_session_commits', 'git_commit_sessions', 'git_correlate_session'
         ];
-        const activeTools = AIDIS_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name));
+        const activeTools = MANDREL_TOOL_DEFINITIONS.filter(tool => !DISABLED_TOOLS.includes(tool.name));
 
         try {
           res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -314,7 +314,7 @@ class AIDISCoreServer {
             tools: activeTools,
             count: activeTools.length,
             timestamp: new Date().toISOString(),
-            note: 'Complete MCP tool definitions with inputSchema for all AIDIS tools'
+            note: 'Complete MCP tool definitions with inputSchema for all MANDREL tools'
           }));
         } catch (error) {
           res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -336,7 +336,7 @@ class AIDISCoreServer {
   }
 
   /**
-   * Handle AIDIS Tool Requests via HTTP
+   * Handle MANDREL Tool Requests via HTTP
    */
   private async handleToolRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void> {
     try {
@@ -381,7 +381,7 @@ class AIDISCoreServer {
   }
 
   /**
-   * Execute AIDIS Tool (core logic for all tools)
+   * Execute MANDREL Tool (core logic for all tools)
    */
   private async executeTool(toolName: string, args: any): Promise<any> {
     // Input validation middleware
@@ -396,19 +396,19 @@ class AIDISCoreServer {
     const validatedArgs = validation.data;
     
     switch (toolName) {
-      case 'aidis_ping':
+      case 'mandrel_ping':
         return await this.handlePing(validatedArgs as { message?: string });
         
-      case 'aidis_status':
+      case 'mandrel_status':
         return await this.handleStatus();
         
-      case 'aidis_help':
+      case 'mandrel_help':
         return await this.handleHelp();
 
-      case 'aidis_explain':
+      case 'mandrel_explain':
         return await this.handleExplain(validatedArgs as any);
 
-      case 'aidis_examples':
+      case 'mandrel_examples':
         return await this.handleExamples(validatedArgs as any);
 
       case 'context_store':
@@ -519,7 +519,7 @@ class AIDISCoreServer {
   }
 
   private getAvailableTools(): string[] {
-    return AIDIS_TOOL_DEFINITIONS.map(tool => tool.name);
+    return MANDREL_TOOL_DEFINITIONS.map(tool => tool.name);
   }
 
 
@@ -529,11 +529,11 @@ class AIDISCoreServer {
       content: [
         {
           type: 'text',
-          text: `🏓 AIDIS Core HTTP Service Pong! ${args.message || ''}\n\n` +
+          text: `🏓 MANDREL Core HTTP Service Pong! ${args.message || ''}\n\n` +
                 `🚀 Status: All systems operational\n` +
                 `⏰ Server time: ${new Date().toISOString()}\n` +
                 `🔒 PID: ${process.pid}\n` +
-                `🌐 Service: aidis-core-http\n` +
+                `🌐 Service: mandrel-core-http\n` +
                 `📊 Circuit breaker: ${this.circuitBreaker.getState()}\n` +
                 `🗄️  Database: ${this.dbHealthy ? 'Connected' : 'Disconnected'}`
         },
@@ -549,8 +549,8 @@ class AIDISCoreServer {
       content: [
         {
           type: 'text',
-          text: `📊 AIDIS Core HTTP Service Status\n\n` +
-                `🚀 Service: aidis-core-http v1.0.0-core\n` +
+          text: `📊 MANDREL Core HTTP Service Status\n\n` +
+                `🚀 Service: mandrel-core-http v1.0.0-core\n` +
                 `⏰ Uptime: ${uptimeStr}\n` +
                 `🔒 Process: ${process.pid}\n` +
                 `🌐 HTTP Port: ${HTTP_PORT}\n` +
@@ -1266,16 +1266,16 @@ class AIDISCoreServer {
   }
 
   /**
-   * Start the AIDIS Core HTTP Service
+   * Start the MANDREL Core HTTP Service
    */
   async start(): Promise<void> {
-    console.log('🚀 Starting AIDIS Core HTTP Service...');
+    console.log('🚀 Starting MANDREL Core HTTP Service...');
 
     // Enforce process singleton (CRITICAL)
     try {
       processLock.acquire();
     } catch (error) {
-      console.error('❌ Cannot start: Another AIDIS Core instance is already running');
+      console.error('❌ Cannot start: Another MANDREL Core instance is already running');
       console.error(error);
       process.exit(1);
     }
@@ -1293,9 +1293,9 @@ class AIDISCoreServer {
       });
       
       // Start pure HTTP server
-      console.log(`🌐 Starting AIDIS Core HTTP server on port ${HTTP_PORT}...`);
+      console.log(`🌐 Starting MANDREL Core HTTP server on port ${HTTP_PORT}...`);
       this.httpServer?.listen(HTTP_PORT, () => {
-        console.log('✅ AIDIS Core HTTP Service is running!');
+        console.log('✅ MANDREL Core HTTP Service is running!');
         console.log(`🌐 Service URL: http://localhost:${HTTP_PORT}`);
         console.log(`✅ Health endpoints:`);
         console.log(`   🏥 Liveness:  http://localhost:${HTTP_PORT}/healthz`);
@@ -1309,7 +1309,7 @@ class AIDISCoreServer {
       console.log(`   🗄️  Database: ${this.dbHealthy ? 'Connected' : 'Disconnected'}`);
       console.log(`   ⚡ Circuit Breaker: ${this.circuitBreaker.getState().toUpperCase()}`);
       console.log(`   🔄 Retry Logic: ${MAX_RETRIES} attempts with exponential backoff`);
-      console.log(`   🐛 Debug: ${process.env.AIDIS_DEBUG || 'DISABLED'}`);
+      console.log(`   🐛 Debug: ${process.env.MANDREL_DEBUG || 'DISABLED'}`);
       
       console.log('🎯 Available tools: 27 total');
       console.log('   📊 System: mandrel_ping, mandrel_status, mandrel_help, mandrel_explain, mandrel_examples');
@@ -1332,7 +1332,7 @@ class AIDISCoreServer {
       console.log('🌐 HTTP API: READY - All 96 tools available via HTTP');
       
     } catch (error) {
-      console.error('❌ Failed to start AIDIS Core HTTP Service:', error);
+      console.error('❌ Failed to start MANDREL Core HTTP Service:', error);
       this.dbHealthy = false;
       
       // Clean up on startup failure
@@ -1379,7 +1379,7 @@ class AIDISCoreServer {
 /**
  * Global shutdown handling
  */
-let serverInstance: AIDISCoreServer | null = null;
+let serverInstance: MANDRELCoreServer | null = null;
 
 async function shutdown(signal: string): Promise<void> {
   if (serverInstance) {
@@ -1398,9 +1398,9 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 if (import.meta.url === `file://${process.argv[1]}`) {
   (async () => {
     try {
-      console.log('🚀 Starting AIDIS Core HTTP Service (STDIO-free)');
+      console.log('🚀 Starting MANDREL Core HTTP Service (STDIO-free)');
       
-      serverInstance = new AIDISCoreServer();
+      serverInstance = new MANDRELCoreServer();
       
       // Start with enhanced error handling
       await serverInstance.start();
@@ -1417,4 +1417,4 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   })();
 }
 
-export { AIDISCoreServer };
+export { MANDRELCoreServer };

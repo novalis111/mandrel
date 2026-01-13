@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 
 /**
- * AIDIS MCP Server - Main Entry Point
+ * MANDREL MCP Server - Main Entry Point
  *
- * This is the entry point for the AIDIS MCP server.
+ * This is the entry point for the MANDREL MCP server.
  * The server implementation is in ./server/MandrelMcpServer.ts
  */
 
@@ -31,7 +31,7 @@ async function shutdown(signal: string): Promise<void> {
  */
 async function main() {
   try {
-    logger.info('AIDIS MCP Server - Starting...');
+    logger.info('MANDREL MCP Server - Starting...');
 
     // ORACLE FIX #1: Enforce process singleton (CRITICAL)
     try {
@@ -41,7 +41,7 @@ async function main() {
         operation: 'singleton_lock'
       });
     } catch (error) {
-      logger.error('Cannot start: Another AIDIS instance is already running', error as Error, {
+      logger.error('Cannot start: Another MANDREL instance is already running', error as Error, {
         component: 'STARTUP',
         operation: 'singleton_lock_failed'
       });
@@ -55,12 +55,12 @@ async function main() {
     serverInstance = new MandrelMcpServer();
     await serverInstance.start();
 
-    logger.info('AIDIS MCP Server - Running');
+    logger.info('MANDREL MCP Server - Running');
 
   } catch (error) {
     console.error('❌ FATAL ERROR:', error);
     console.error('Error stack:', error instanceof Error ? error.stack : 'No stack');
-    logger.error('Fatal error starting AIDIS MCP Server:', error as Error);
+    logger.error('Fatal error starting MANDREL MCP Server:', error as Error);
 
     // Attempt graceful cleanup even on startup failure
     if (serverInstance) {

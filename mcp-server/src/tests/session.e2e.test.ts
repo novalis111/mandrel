@@ -107,7 +107,7 @@ describe('Session Management E2E Tests', () => {
 
       const { rows } = await db.query('SELECT project_id FROM sessions WHERE id = $1', [sessionId]);
       expect(rows).toHaveLength(1);
-      expect(rows[0].project_id).toBe('4afb236c-00d7-433d-87de-0f489b96acb2'); // aidis-bootstrap default
+      expect(rows[0].project_id).toBe('4afb236c-00d7-433d-87de-0f489b96acb2'); // mandrel-bootstrap default
     } finally {
       // Clean up
       if (sessionId) {

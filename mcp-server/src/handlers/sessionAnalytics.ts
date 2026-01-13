@@ -1,5 +1,5 @@
 /**
- * AIDIS Session Analytics Handler
+ * MANDREL Session Analytics Handler
  * 
  * Provides comprehensive session analytics and statistics endpoints.
  * Integrates with SessionTracker service for session management.
@@ -562,7 +562,7 @@ export class SessionManagementHandler {
       if (!activeSessionId) {
         return {
           success: false,
-          message: 'No active session found. Start AIDIS to create a new session.'
+          message: 'No active session found. Start MANDREL to create a new session.'
         };
       }
 

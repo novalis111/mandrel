@@ -270,10 +270,10 @@ export class ProjectRoutes {
   }
 
   /**
-   * Handle project insights requests
-   * Note: project_insights is actually handled in search.routes.ts
-   * This method is included for completeness but not used in the route dispatcher
-   */
+    * Handle project insights requests
+    * Note: project_insights is actually handled in search.routes.ts
+    * This method is included for completeness but not used in the route dispatcher
+    */
   async handleInsights(_args: any): Promise<McpResponse> {
     // This tool is handled by searchRoutes.handleProjectInsights()
     // Included here for type safety but not exposed in routes/index.ts
@@ -281,26 +281,75 @@ export class ProjectRoutes {
   }
 
   /**
-   * Handle project deletion requests
+   * Handle project migration requests
    */
+  async handleMigrate(args: any): Promise<McpResponse> {
+    try {
+      if (!args.sourceProjectId || !args.targetProjectId) {
+        return formatMcpError('sourceProjectId and targetProjectId are required', 'project_migrate');
+      }
+
+      const result = await projectHandler.migrateProject(args.sourceProjectId, args.targetProjectId, args.confirmed === true);
+
+      if (!result.success && result.requiresConfirmation) {
+        return {
+          content: [{
+            type: 'text',
+            text: result.warning || 'Migration requires confirmation'
+          }],
+        };
+      }
+
+      return {
+        content: [{
+          type: 'text',
+          text: `✅ **Project Migration Complete**\n\n` +
+                `🔄 Migrated from: **${result.migrationSummary?.sourceProjectName}**\n` +
+                `➜ Migrated to: **${result.migrationSummary?.targetProjectName}**\n\n` +
+                `📦 **Items Moved:**\n` +
+                `   • Analytics Events: ${result.migrationSummary?.movedAnalyticsEvents}\n` +
+                `   • Contexts: ${result.migrationSummary?.movedContexts}\n` +
+                `   • Tasks: ${result.migrationSummary?.movedTasks}\n` +
+                `   • Decisions: ${result.migrationSummary?.movedDecisions}\n\n` +
+                `✨ Source project deleted. All items retain their original timestamps.`
+        }],
+      };
+    } catch (error) {
+      return formatMcpError(error as Error, 'project_migrate');
+    }
+  }
+
+  /**
+    * Handle project deletion requests
+    */
   async handleDelete(args: any): Promise<McpResponse> {
     try {
       if (!args.projectId) {
         return formatMcpError('projectId is required', 'project_delete');
       }
 
-      const result = await projectHandler.deleteProject(args.projectId);
+      const result = await projectHandler.deleteProject(args.projectId, args.confirmed === true);
+
+      if (!result.success && result.requiresConfirmation) {
+        return {
+          content: [{
+            type: 'text',
+            text: result.warning || 'Deletion requires confirmation'
+          }],
+        };
+      }
 
       return {
         content: [{
           type: 'text',
           text: `✅ **Project Deleted Successfully**\n\n` +
-                `📋 **Project:** ${result.deletedProject.name}\n` +
-                `🆔 **ID:** ${result.deletedProject.id}\n\n` +
+                `📋 **Project:** ${result.deletedProject?.name}\n` +
+                `🆔 **ID:** ${result.deletedProject?.id}\n\n` +
                 `🗑️  **Cascade Deletions:**\n` +
-                `   • Contexts: ${result.deletedCount.contexts}\n` +
-                `   • Tasks: ${result.deletedCount.tasks}\n` +
-                `   • Decisions: ${result.deletedCount.decisions}\n\n` +
+                `   • Analytics Events: ${result.deletedCount?.analyticsEvents}\n` +
+                `   • Contexts: ${result.deletedCount?.contexts}\n` +
+                `   • Tasks: ${result.deletedCount?.tasks}\n` +
+                `   • Decisions: ${result.deletedCount?.decisions}\n\n` +
                 `💡 You may need to switch to another project if this was your active project.`
         }],
       };
@@ -308,6 +357,6 @@ export class ProjectRoutes {
       return formatMcpError(error as Error, 'project_delete');
     }
   }
-}
+  }
 
 export const projectRoutes = new ProjectRoutes();

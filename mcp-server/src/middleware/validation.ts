@@ -1,6 +1,6 @@
 /**
  * ORACLE HARDENING: INPUT VALIDATION MIDDLEWARE
- * Zod-based validation for all AIDIS MCP tool requests
+ * Zod-based validation for all MANDREL MCP tool requests
  * Prevents malformed input and ensures data integrity
  */
 
@@ -33,9 +33,6 @@ export const mandrelSystemSchemas = {
     toolName: z.string().min(1).max(100)
   })
 };
-
-// Legacy alias for backward compatibility
-export const aidisSystemSchemas = mandrelSystemSchemas;
 
 // Context Management Schemas
 export const contextSchemas = {
@@ -107,7 +104,14 @@ export const projectSchemas = {
   }),
 
   delete: z.object({
-    projectId: z.string().uuid()
+    projectId: z.string().uuid(),
+    confirmed: z.boolean().optional().default(false)
+  }),
+
+  migrate: z.object({
+    sourceProjectId: z.string().uuid(),
+    targetProjectId: z.string().uuid(),
+    confirmed: z.boolean().optional().default(false)
   })
   };
 
@@ -366,17 +370,11 @@ export const smartSearchSchemas = {
 // Main validation schema registry
 export const validationSchemas = {
   // System Health (with backward compatibility aliases)
-  mandrel_ping: aidisSystemSchemas.ping,
-  mandrel_status: aidisSystemSchemas.status,
-  mandrel_help: aidisSystemSchemas.help,
-  mandrel_explain: aidisSystemSchemas.explain,
-  mandrel_examples: aidisSystemSchemas.explain, // Same schema as explain - takes toolName parameter
-  // Backward compatibility aliases
-  aidis_ping: aidisSystemSchemas.ping,
-  aidis_status: aidisSystemSchemas.status,
-  aidis_help: aidisSystemSchemas.help,
-  aidis_explain: aidisSystemSchemas.explain,
-  aidis_examples: aidisSystemSchemas.explain,
+  mandrel_ping: mandrelSystemSchemas.ping,
+  mandrel_status: mandrelSystemSchemas.status,
+  mandrel_help: mandrelSystemSchemas.help,
+  mandrel_explain: mandrelSystemSchemas.explain,
+  mandrel_examples: mandrelSystemSchemas.explain, // Same schema as explain - takes toolName parameter
   
   // Context Management
   context_store: contextSchemas.store,
@@ -392,6 +390,7 @@ export const validationSchemas = {
   project_list: projectSchemas.list,
   project_current: projectSchemas.current,
   project_insights: projectSchemas.insights,
+  project_migrate: projectSchemas.migrate,
   project_delete: projectSchemas.delete,
   
   // Naming Registry

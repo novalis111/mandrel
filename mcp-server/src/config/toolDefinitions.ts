@@ -1,7 +1,7 @@
 /**
- * AIDIS Tool Definitions
+ * MANDREL Tool Definitions
  *
- * Shared module containing all 41 AIDIS MCP tool definitions.
+ * Shared module containing all 41 MANDREL MCP tool definitions.
  * (8 session analytics tools migrated to REST API on 2025-10-05)
  * This module serves as the single source of truth for tool schemas
  * used by both the main MCP server and the HTTP bridge.
@@ -25,14 +25,14 @@ export interface ToolDefinition {
 }
 
 /**
- * Complete array of all 27 AIDIS tool definitions
+ * Complete array of all 27 MANDREL tool definitions
  * Changes:
  * - 8 session analytics tools migrated to REST API (2025-10-05)
  * - 2 pattern detection tools removed (2025-10-24) - deprecated stub implementations
  * - 5 session MCP tools removed (2025-10-24) - auto-tracking replaces manual management
  * - 4 naming registry tools removed (2025-10-24) - replaced by dependency tracking
  */
-export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
+export const MANDREL_TOOL_DEFINITIONS: ToolDefinition[] = [
           {
             name: 'mandrel_ping',
             description: 'Test connectivity to Mandrel server',
@@ -444,12 +444,28 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
           },
 
           {
+            name: 'project_migrate',
+            description: 'Migrate one project into another (consolidate two projects). Moves all contexts, tasks, and decisions from source to target, then deletes source.',
+            inputSchema: {
+              type: 'object',
+              properties: {
+                sourceProjectId: { type: 'string', description: 'Source project ID to migrate from' },
+                targetProjectId: { type: 'string', description: 'Target project ID to migrate into' },
+                confirmed: { type: 'boolean', description: 'Must be true to confirm migration (default: false for preview)' }
+              },
+              required: ['sourceProjectId', 'targetProjectId'],
+              additionalProperties: true
+            },
+          },
+
+          {
             name: 'project_delete',
             description: 'Delete a project by ID (cascade deletes contexts, tasks, decisions)',
             inputSchema: {
               type: 'object',
               properties: {
-                projectId: { type: 'string', description: 'Project ID to delete' }
+                projectId: { type: 'string', description: 'Project ID to delete' },
+                confirmed: { type: 'boolean', description: 'Must be true to confirm deletion (default: false for preview)' }
               },
               required: ['projectId'],
               additionalProperties: true
@@ -506,7 +522,7 @@ export const AIDIS_TOOL_DEFINITIONS: ToolDefinition[] = [
         // - session_update → Not needed for auto-tracking
         // - session_details → Not needed for auto-tracking
         // SessionTracker service remains fully functional for auto-tracking.
-        // AIDIS Command UI uses REST API endpoints at /api/v2/sessions/* for session analytics.
+        // MANDREL Command UI uses REST API endpoints at /api/v2/sessions/* for session analytics.
 
         // Session Analytics Tools - MIGRATED TO REST API (2025-10-05)
         // The following 8 tools have been migrated to REST API endpoints at /api/v2/sessions/*

@@ -1,5 +1,5 @@
 /**
- * AIDIS Request/Response Logging Middleware
+ * MANDREL Request/Response Logging Middleware
  * 
  * Comprehensive MCP request/response logging with:
  * - Correlation ID generation and propagation
@@ -36,17 +36,17 @@ export interface RequestContext {
  */
 export class RequestLogger {
   private static slowOperationThreshold = (() => {
-    const threshold = parseInt(process.env.MANDREL_SLOW_OP_THRESHOLD || process.env.AIDIS_SLOW_OP_THRESHOLD || '1000');
-    if (process.env.AIDIS_SLOW_OP_THRESHOLD && !process.env.MANDREL_SLOW_OP_THRESHOLD) {
-      console.warn('⚠️  AIDIS_SLOW_OP_THRESHOLD is deprecated. Use MANDREL_SLOW_OP_THRESHOLD instead.');
+    const threshold = parseInt(process.env.MANDREL_SLOW_OP_THRESHOLD || process.env.MANDREL_SLOW_OP_THRESHOLD || '1000');
+    if (process.env.MANDREL_SLOW_OP_THRESHOLD && !process.env.MANDREL_SLOW_OP_THRESHOLD) {
+      console.warn('⚠️  MANDREL_SLOW_OP_THRESHOLD is deprecated. Use MANDREL_SLOW_OP_THRESHOLD instead.');
     }
     return threshold;
   })();
   
   private static enableDetailedLogging = (() => {
-    const enabled = (process.env.MANDREL_DETAILED_LOGGING || process.env.AIDIS_DETAILED_LOGGING || 'false') === 'true';
-    if (process.env.AIDIS_DETAILED_LOGGING && !process.env.MANDREL_DETAILED_LOGGING) {
-      console.warn('⚠️  AIDIS_DETAILED_LOGGING is deprecated. Use MANDREL_DETAILED_LOGGING instead.');
+    const enabled = (process.env.MANDREL_DETAILED_LOGGING || process.env.MANDREL_DETAILED_LOGGING || 'false') === 'true';
+    if (process.env.MANDREL_DETAILED_LOGGING && !process.env.MANDREL_DETAILED_LOGGING) {
+      console.warn('⚠️  MANDREL_DETAILED_LOGGING is deprecated. Use MANDREL_DETAILED_LOGGING instead.');
     }
     return enabled;
   })();
@@ -285,7 +285,7 @@ export class RequestLogger {
   ): void {
     const logArgs = {
       correlationId: CorrelationIdManager.get(),
-      component: 'AIDIS',
+      component: 'MANDREL',
       operation,
       metadata
     };

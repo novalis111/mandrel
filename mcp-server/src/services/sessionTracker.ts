@@ -1,5 +1,5 @@
 /**
- * AIDIS Session Tracking Service
+ * MANDREL Session Tracking Service
  * 
  * Manages user session lifecycle, productivity metrics, and analytics.
  * Integrates with analytics_events table for comprehensive session tracking.
@@ -286,7 +286,7 @@ export class SessionTracker {
           input_tokens: tokenUsage.input,
           output_tokens: tokenUsage.output,
           total_tokens: tokenUsage.total,
-          completed_by: 'aidis-session-tracker'
+          completed_by: 'mandrel-session-tracker'
         }),
         sessionId
       ];
@@ -1083,7 +1083,7 @@ export class SessionTracker {
    * Resolve project for new session using TS010 hierarchy:
    * 1. Current project (from project handler context)
    * 2. User's primary project
-   * 3. System default project (aidis-bootstrap)
+   * 3. System default project (mandrel-bootstrap)
    * 4. Create personal project
    */
   static async resolveProjectForSession(sessionId: string = 'default-session'): Promise<string | null> {
@@ -1118,11 +1118,11 @@ export class SessionTracker {
         return project.id;
       }
       
-      // 3. Check for system default project (aidis-bootstrap)
+      // 3. Check for system default project (mandrel-bootstrap)
       const systemDefaultSql = `
         SELECT id, name
         FROM projects 
-        WHERE name = 'aidis-bootstrap'
+        WHERE name = 'mandrel-bootstrap'
         ORDER BY created_at DESC
         LIMIT 1
       `;
@@ -1152,7 +1152,7 @@ export class SessionTracker {
           auto_created: true,
           created_for: 'ts010_session_management',
           is_personal: true,
-          created_by: 'aidis-session-tracker',
+          created_by: 'mandrel-session-tracker',
           ts010_fallback: true
         }),
         new Date()
@@ -1221,7 +1221,7 @@ export class SessionTracker {
           description_updated: !!description,
           session_goal_updated: !!sessionGoal,
           tags_updated: !!(tags && tags.length > 0),
-          updated_by: 'aidis-session-tracker',
+          updated_by: 'mandrel-session-tracker',
           updated_at: new Date().toISOString()
         })
       ];

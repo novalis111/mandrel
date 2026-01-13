@@ -1,5 +1,5 @@
 /**
- * AIDIS Technical Decisions Handler
+ * MANDREL Technical Decisions Handler
  * 
  * This is the INSTITUTIONAL MEMORY KEEPER - preventing teams from repeating mistakes!
  * 
@@ -706,8 +706,42 @@ export class DecisionsHandler {
   }
 
   /**
-   * Delete a decision by ID
+   * Move a decision to another project
    */
+  async moveDecision(decisionId: string, targetProjectId: string): Promise<TechnicalDecision> {
+    console.log(`🔄 Moving decision ${decisionId} to project ${targetProjectId}`);
+
+    try {
+      // Verify decision exists
+      const decisionResult = await db.query('SELECT * FROM technical_decisions WHERE id = $1', [decisionId]);
+      if (decisionResult.rows.length === 0) {
+        throw new Error(`Decision not found: ${decisionId}`);
+      }
+
+      // Verify target project exists
+      const projectResult = await db.query('SELECT id FROM projects WHERE id = $1', [targetProjectId]);
+      if (projectResult.rows.length === 0) {
+        throw new Error(`Target project not found: ${targetProjectId}`);
+      }
+
+      // Update decision's project_id
+      const updateResult = await db.query(
+        'UPDATE technical_decisions SET project_id = $1 WHERE id = $2 RETURNING *',
+        [targetProjectId, decisionId]
+      );
+
+      console.log(`✅ Moved decision to project ${targetProjectId}`);
+      return this.mapDatabaseRowToDecision(updateResult.rows[0]);
+
+    } catch (error) {
+      console.error('❌ Failed to move decision:', error);
+      throw new Error(`Failed to move decision: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
+
+  /**
+    * Delete a decision by ID
+    */
   async deleteDecision(decisionId: string): Promise<{ success: boolean; deletedDecision: string }> {
     console.log(`🗑️  Deleting decision: ${decisionId}`);
 
@@ -733,7 +767,7 @@ export class DecisionsHandler {
       throw new Error(`Failed to delete decision: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
-}
+  }
 
-// Export singleton instance
-export const decisionsHandler = new DecisionsHandler();
+  // Export singleton instance
+  export const decisionsHandler = new DecisionsHandler();

@@ -12,7 +12,7 @@ describe('McpParser', () => {
         content: [
           {
             type: 'text',
-            text: 'Hello from AIDIS!'
+            text: 'Hello from MANDREL!'
           }
         ]
       });

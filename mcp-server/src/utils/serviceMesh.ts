@@ -1,5 +1,5 @@
 /**
- * AIDIS Service Mesh Utilities
+ * MANDREL Service Mesh Utilities
  * Circuit breaker, retry logic, and service discovery patterns
  */
 
@@ -37,10 +37,10 @@ export class ServiceMeshClient extends EventEmitter {
   }
 
   private initializeServices(): void {
-    // Register AIDIS services with service mesh
+    // Register MANDREL services with service mesh
     this.registerService({
       name: 'mcp-server',
-      url: 'http://aidis-mcp-server:8080',
+      url: 'http://mandrel-mcp-server:8080',
       healthCheck: '/healthz',
       timeout: 10000,
       retries: 3,
@@ -48,7 +48,7 @@ export class ServiceMeshClient extends EventEmitter {
 
     this.registerService({
       name: 'command-backend',
-      url: 'http://aidis-command-backend:3002',
+      url: 'http://mandrel-command-backend:3002',
       healthCheck: '/health',
       timeout: 5000,
       retries: 3,
@@ -56,7 +56,7 @@ export class ServiceMeshClient extends EventEmitter {
 
     this.registerService({
       name: 'redis',
-      url: 'redis://aidis-redis:6379',
+      url: 'redis://mandrel-redis:6379',
       healthCheck: '/ping',
       timeout: 3000,
       retries: 2,
@@ -64,7 +64,7 @@ export class ServiceMeshClient extends EventEmitter {
 
     this.registerService({
       name: 'postgres',
-      url: 'postgresql://aidis-postgres:5432',
+      url: 'postgresql://mandrel-postgres:5432',
       healthCheck: '/pg_isready',
       timeout: 5000,
       retries: 2,
@@ -151,7 +151,7 @@ export class ServiceMeshClient extends EventEmitter {
         ...options,
         signal: controller.signal,
         headers: {
-          'User-Agent': 'AIDIS-ServiceMesh/1.0',
+          'User-Agent': 'MANDREL-ServiceMesh/1.0',
           'X-Request-ID': this.generateRequestId(),
           ...options.headers,
         },

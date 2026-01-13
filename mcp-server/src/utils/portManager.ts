@@ -1,6 +1,6 @@
 /**
  * Port Management Utilities
- * Provides dynamic port assignment and discovery for AIDIS services
+ * Provides dynamic port assignment and discovery for MANDREL services
  */
 
 import * as fs from 'fs';
@@ -28,12 +28,12 @@ export class PortManager {
 
   constructor(config?: Partial<PortDiscoveryConfig>) {
     this.config = {
-      registryFile: process.env.AIDIS_PORT_REGISTRY || path.resolve(process.cwd(), 'run/port-registry.json'),
+      registryFile: process.env.MANDREL_PORT_REGISTRY || path.resolve(process.cwd(), 'run/port-registry.json'),
       defaultPorts: {
-        'aidis-mcp': 8080,
-        'aidis-command-dev': 5000,
-        'aidis-command-prod': 5001,
-        'aidis-mcp-bridge': 8081
+        'mandrel-mcp': 8080,
+        'mandrel-command-dev': 5000,
+        'mandrel-command-prod': 5001,
+        'mandrel-mcp-bridge': 8081
       },
       portRange: { min: 8000, max: 9000 },
       ...config
@@ -49,12 +49,12 @@ export class PortManager {
    */
   public async assignPort(serviceName: string, preferredPort?: number): Promise<number> {
     const mandrelVarName = `MANDREL_${serviceName.toUpperCase().replace(/-/g, '_')}_PORT`;
-    const aidisVarName = `AIDIS_${serviceName.toUpperCase().replace(/-/g, '_')}_PORT`;
-    const envPort = process.env[mandrelVarName] || process.env[aidisVarName];
+    const envPort = process.env[mandrelVarName];
 
-    // Log deprecation warning if old var is used
-    if (process.env[aidisVarName] && !process.env[mandrelVarName]) {
-      console.warn(`⚠️  ${aidisVarName} is deprecated. Use ${mandrelVarName} instead.`);
+    // Log deprecation warning if old var is used (for backward compatibility)
+    const oldVarName = `AIDIS_${serviceName.toUpperCase().replace(/-/g, '_')}_PORT`;
+    if (process.env[oldVarName] && !process.env[mandrelVarName]) {
+      console.warn(`⚠️  ${oldVarName} is deprecated. Use ${mandrelVarName} instead.`);
     }
 
     // Check specific environment variable first

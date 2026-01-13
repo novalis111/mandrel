@@ -1,8 +1,8 @@
 /**
- * HTTP-to-MCP Bridge Server for AIDIS Command Dev Environment
+ * HTTP-to-MCP Bridge Server for MANDREL Command Dev Environment
  * 
- * Provides HTTP REST API on port 8081 that forwards requests to AIDIS MCP system
- * This allows aidis-command-dev backend to use HTTP while MCP uses stdio protocol
+ * Provides HTTP REST API on port 8081 that forwards requests to MANDREL MCP system
+ * This allows mandrel-command-dev backend to use HTTP while MCP uses stdio protocol
  */
 
 import express from 'express';
@@ -100,8 +100,8 @@ export class HttpMcpBridge {
    */
   private async callMcpTool(toolName: string, args: any): Promise<any> {
     return new Promise((resolve, reject) => {
-      // Use the mcp__aidis__ prefix that Amp uses for AIDIS MCP tools
-      // const mcpToolName = `mcp__aidis__${toolName}`;
+      // Use the mcp__mandrel__ prefix that Amp uses for MANDREL MCP tools
+      // const mcpToolName = `mcp__mandrel__${toolName}`;
 
       // Create a JSON-RPC request to Amp's MCP system
       // const _request = {
@@ -185,8 +185,8 @@ export class HttpMcpBridge {
       this.server = this.app.listen(this.port, 'localhost', () => {
         console.log('🌉 HTTP-MCP Bridge Server Started');
         console.log(`📡 Listening on: http://localhost:${this.port}`);
-        console.log(`🔄 Forwarding: HTTP → AIDIS MCP → HTTP`);
-        console.log('✅ Ready for aidis-command-dev backend connections');
+        console.log(`🔄 Forwarding: HTTP → MANDREL MCP → HTTP`);
+        console.log('✅ Ready for mandrel-command-dev backend connections');
         resolve();
       });
 

@@ -128,7 +128,8 @@ export class TasksRoutes {
           in_progress: '🔄',
           blocked: '🚫',
           completed: '✅',
-          cancelled: '❌'
+          cancelled: '❌',
+          rejected: '❌'
         }[task.status] || '❓';
 
         const priorityIcon = {
@@ -372,7 +373,8 @@ export class TasksRoutes {
         in_progress: '🔄',
         blocked: '🚫',
         completed: '✅',
-        cancelled: '❌'
+        cancelled: '❌',
+        rejected: '❌'
       }[task.status] || '❓';
 
       const priorityIcon = {

@@ -490,7 +490,7 @@ export class ProjectSwitchValidator {
         FROM pg_stat_activity 
         WHERE state = 'active' 
         AND query NOT LIKE '%pg_stat_activity%'
-        AND application_name LIKE '%aidis%'
+        AND application_name LIKE '%mandrel%'
       `;
       
       const transactionResult = await db.query(transactionQuery);

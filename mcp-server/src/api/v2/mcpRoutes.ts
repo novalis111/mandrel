@@ -69,6 +69,8 @@ export class V2McpRouter {
     this.toolHandlers.set('project_list', projectHandler);
     this.toolHandlers.set('project_current', projectHandler);
     this.toolHandlers.set('project_insights', projectHandler);
+    this.toolHandlers.set('project_migrate', projectHandler);
+    this.toolHandlers.set('project_delete', projectHandler);
 
     // Technical Decisions
     this.toolHandlers.set('decision_record', decisionsHandler);
@@ -154,7 +156,7 @@ export class V2McpRouter {
           list: '/v2/mcp/tools',
           health: '/v2/mcp/health'
         },
-        documentation: 'https://docs.aidis.dev/api/v2'
+        documentation: 'https://docs.mandrel.dev/api/v2'
       });
     });
 

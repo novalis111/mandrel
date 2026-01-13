@@ -8,7 +8,7 @@ import { getQueueManager, shutdownQueue } from './queueManager.js';
 import { startGitTracking, stopGitTracking } from './gitTracker.js';
 
 // Check if background services should be skipped (for testing)
-const SKIP_BACKGROUND_SERVICES = process.env.AIDIS_SKIP_BACKGROUND === 'true';
+const SKIP_BACKGROUND_SERVICES = process.env.MANDREL_SKIP_BACKGROUND === 'true';
 
 /**
  * Background Services Orchestrator
@@ -22,7 +22,7 @@ export class BackgroundServices {
    */
   async startAll(): Promise<void> {
     if (SKIP_BACKGROUND_SERVICES) {
-      console.log('🧪 Skipping background services (AIDIS_SKIP_BACKGROUND=true)');
+      console.log('🧪 Skipping background services (MANDREL_SKIP_BACKGROUND=true)');
       return;
     }
 
